@@ -1,0 +1,44 @@
+[
+  {
+    "id": "proj-plataforma-estudos",
+    "nome": "Plataforma Pessoal de Estudos — ADS",
+    "descricao": "Painel de controle acadêmico, central de resumos, acompanhamento de progresso e revisão de Kahoots para a graduação em Análise e Desenvolvimento de Sistemas.",
+    "problema": "Dispersão de anotações de aulas, links de Kahoots, códigos e resumos entre diferentes plataformas e cadernos físicos, dificultando a revisão rápida antes de quizzes e provas.",
+    "objetivos": [
+      "Centralizar todos os conteúdos das disciplinas de ADS da Cruzeiro do Sul.",
+      "Criar uma rotina de revisão pré-quiz para os Kahoots desenvolvidos.",
+      "Construir um histórico evolutivo e portfólio técnico que dure por toda a graduação (2026-2027)."
+    ],
+    "tecnologias": ["React", "Vite", "Tailwind CSS", "JavaScript", "HTML5", "GitHub Pages"],
+    "linguagens": ["JavaScript", "HTML", "CSS"],
+    "frameworks": ["React 18", "Tailwind CSS 3", "React Router 6", "Lucide React"],
+    "funcionalidades": [
+      "Dashboard com contadores reais de matérias e módulos",
+      "Catálogo de disciplinas por semestre",
+      "Biblioteca de resumos com busca, tags e exportação para PDF/impressão",
+      "Central pedagógica de Kahoots com estudo pré-quiz",
+      "Busca global instantânea via atalho Ctrl + K",
+      "Tema claro e tema escuro com persistência local",
+      "Gerador de novos conteúdos em JSON sem necessidade de backend"
+    ],
+    "aprendizados": "Planejamento arquitetural desacoplado, componentização limpa com React, acessibilidade com foco visível e deploy estático automatizado no GitHub Pages.",
+    "dificuldades": "Estruturar o site para permitir adição ilimitada de novas disciplinas e quizzes sem exigir alterações no código-fonte principal.",
+    "solucoes": "Arquitetura baseada em dados relacionais JSON e persistência de preferências do usuário diretamente no LocalStorage do navegador.",
+    "etapas": [
+      "1. Planejamento da arquitetura e modelagem dos dados",
+      "2. Criação do layout responsivo com tema claro e escuro",
+      "3. Implementação dos módulos acadêmicos e central de Kahoots",
+      "4. Adição de busca global e persistência local",
+      "5. Configuração do GitHub Actions para deploy contínuo"
+    ],
+    "screenshots": [],
+    "githubUrl": "https://github.com",
+    "demoUrl": "",
+    "documentacao": "README completo no repositório com instruções de uso e publicação.",
+    "status": "em_desenvolvimento",
+    "dataInicio": "2026-03-01",
+    "dataConclusao": "",
+    "disciplinasRelacionadas": ["prog-computadores", "interface-ux", "eng-prompt-ia"],
+    "modulosRelacionados": ["mod-prog-01", "mod-ux-01", "mod-ia-01"]
+  }
+]

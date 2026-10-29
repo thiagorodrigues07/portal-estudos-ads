@@ -1,0 +1,119 @@
+[
+  {
+    "id": "resumo-logica-01",
+    "disciplinaId": "prog-computadores",
+    "moduloId": "mod-prog-01",
+    "titulo": "Resumo Completo: Variáveis, Tipos e Operadores Lógicos",
+    "assunto": "Lógica Básica e Algoritmos",
+    "tags": ["Lógica", "Variáveis", "Tipos", "Algoritmos"],
+    "dataCriacao": "2026-03-01",
+    "dataAtualizacao": "2026-03-01",
+    "tempoLeituraMin": 6,
+    "conteudo": {
+      "introducao": "Toda aplicação de software manipula informações. Para que um algoritmo seja executável, essas informações precisam ser classificadas e alocadas na memória do computador.",
+      "secoes": [
+        {
+          "titulo": "1. Tipos Primitivos de Dados",
+          "texto": "Os computadores armazenam dados em diferentes formatos dependendo de sua natureza:",
+          "itens": [
+            "Inteiro (int): valores numéricos sem casas decimais (ex: -5, 0, 42).",
+            "Ponto Flutuante / Real (float/double): valores numéricos com precisão decimal (ex: 3.14, -0.01).",
+            "Caractere e String (char/str): dados textuais alfanuméricos.",
+            "Booleano (bool): representa apenas dois estados lógicos fundamentais: verdadeiro (True) ou falso (False)."
+          ]
+        },
+        {
+          "titulo": "2. Precedência de Operadores",
+          "texto": "Quando uma expressão combina múltiplos operadores, o computador segue uma ordem estrita:",
+          "tabela": {
+            "colunas": ["Ordem", "Tipo de Operação", "Símbolos Típicos"],
+            "linhas": [
+              ["1º", "Parênteses e Agrupamentos", "( )"],
+              ["2º", "Aritméticos Multiplicativos", "*, /, % (módulo)"],
+              ["3º", "Aritméticos Aditivos", "+, -"],
+              ["4º", "Relacionais", ">, <, >=, <=, ==, !="],
+              ["5º", "Lógicos", "! (NOT), && (AND), || (OR)"]
+            ]
+          }
+        },
+        {
+          "titulo": "3. Curto-Circuito Lógico",
+          "texto": "Em expressões lógicas com o operador AND (&&), se o primeiro operando for avaliado como falso, o segundo sequer é executado, pois a expressão final já é garantidamente falsa. O mesmo vale para o OR (||): se o primeiro for verdadeiro, a expressão é imediatamente verdadeira."
+        }
+      ],
+      "codigoExemplo": "// Demonstração de curto-circuito em JavaScript:\nlet usuarioLogado = false;\nlet dadosCarregados = usuarioLogado && buscarDadosDoServidor();\n// buscarDadosDoServidor() NUNCA será chamada!",
+      "destaqueImportante": "Atenção em avaliações: o operador de atribuição '=' altera o valor da variável. Para verificar igualdade, utiliza-se '==' ou '==='. Trocar um pelo outro em condicionais 'if' gera comportamentos inesperados."
+    }
+  },
+  {
+    "id": "resumo-ux-01",
+    "disciplinaId": "interface-ux",
+    "moduloId": "mod-ux-01",
+    "titulo": "Guia de Bolso: As 10 Heurísticas de Usabilidade de Nielsen",
+    "assunto": "Usabilidade e Avaliação Heurística",
+    "tags": ["UX", "UI", "Heurísticas", "Usabilidade", "Nielsen"],
+    "dataCriacao": "2026-03-02",
+    "dataAtualizacao": "2026-03-02",
+    "tempoLeituraMin": 8,
+    "conteudo": {
+      "introducao": "Formuladas por Jakob Nielsen e Rolf Molich, as 10 heurísticas são princípios consagrados de design de interação essenciais para qualquer desenvolvedor de software.",
+      "secoes": [
+        {
+          "titulo": "Heurísticas 1 a 5: Controle, Feedback e Prevenção",
+          "itens": [
+            "1. Visibilidade do status do sistema: mantenha o usuário informado sobre o que está ocorrendo em tempo razoável (loaders, barras de progresso).",
+            "2. Correspondência entre o sistema e o mundo real: utilize termos, conceitos e ícones familiares ao usuário, não jargões internos de programação.",
+            "3. Controle e liberdade do usuário: ofereça 'saídas de emergência' claras, como botões de cancelar, fechar modal e desfazer (Undo).",
+            "4. Consistência e padrões: mantenha as mesmas palavras e ações para as mesmas funções ao longo de todo o sistema.",
+            "5. Prevenção de erros: construa interfaces que impeçam o erro antes que ele ocorra (ex: confirmações de exclusão, máscaras de campo válidas)."
+          ]
+        },
+        {
+          "titulo": "Heurísticas 6 a 10: Memória, Eficiência e Ajuda",
+          "itens": [
+            "6. Reconhecimento em vez de memorização: torne objetos, ações e opções visíveis para que o usuário não precise lembrar instruções de uma tela para outra.",
+            "7. Flexibilidade e eficiência de uso: disponibilize atalhos para usuários avançados (ex: Ctrl+K, atalhos de teclado).",
+            "8. Estética e design minimalista: telas não devem conter informações irrelevantes ou raramente necessárias.",
+            "9. Ajudar os usuários a reconhecer, diagnosticar e recuperar-se de erros: mensagens de erro devem ser expressas em linguagem clara, sem códigos crípticos, e sugerir uma solução construtiva.",
+            "10. Ajuda e documentação: mesmo que seja melhor que o sistema não precise de explicações, a documentação deve ser fácil de buscar e focada na tarefa do usuário."
+          ]
+        }
+      ],
+      "destaqueImportante": "Na prática profissional: sempre priorize a Heurística 5 (Prevenção de erros). Um formulário com validação imediata e botões desabilitados até os campos serem preenchidos poupa frustrações e suporte técnico."
+    }
+  },
+  {
+    "id": "resumo-prompt-01",
+    "disciplinaId": "eng-prompt-ia",
+    "moduloId": "mod-ia-01",
+    "titulo": "Fundamentos de Engenharia de Prompt para Desenvolvedores",
+    "assunto": "Modelos LLM e Construção de Prompts",
+    "tags": ["IA", "Prompt", "LLM", "FewShot", "ChainOfThought"],
+    "dataCriacao": "2026-03-03",
+    "dataAtualizacao": "2026-03-03",
+    "tempoLeituraMin": 7,
+    "conteudo": {
+      "introducao": "Engenharia de Prompt não é apenas fazer perguntas à IA, mas projetar sistemas determinísticos de entrada capazes de extrair respostas estruturadas e confiáveis de modelos probabilísticos.",
+      "secoes": [
+        {
+          "titulo": "Os 4 Pilares de um Prompt Robusto",
+          "itens": [
+            "1. Persona / Papel: define o ponto de vista técnico e tom da resposta (ex: 'Você é um arquiteto de software sênior especializado em microsserviços').",
+            "2. Contexto: o cenário, regras do negócio e dados de entrada.",
+            "3. Instrução Direta: o verbo imperativo da ação (ex: 'Escreva', 'Refatore', 'Analise o seguinte erro').",
+            "4. Formato de Saída (Output Formatting): especificação rígida da saída (ex: 'Responda estritamente em formato JSON válido contendo as chaves id e descricao')."
+          ]
+        },
+        {
+          "titulo": "Técnicas Avançadas",
+          "itens": [
+            "Few-Shot Learning: fornecer de 2 a 3 exemplos de entrada e saída esperada antes de solicitar o caso real.",
+            "Chain of Thought (CoT): instruir a IA a pensar passo a passo ('Pense etapa por etapa antes de fornecer a conclusão final'), o que melhora o desempenho em raciocínio lógico e matemático."
+          ]
+        }
+      ],
+      "codigoExemplo": "{\n  \"prompt_template\": {\n    \"role\": \"Desenvolvedor Frontend Sênior\",\n    \"task\": \"Refatorar o componente React para usar hooks modernos\",\n    \"constraints\": [\"Não utilizar bibliotecas externas\", \"Manter tipagem estrita\"],\n    \"output_format\": \"Código puro em bloco Markdown\"\n  }\n}",
+      "destaqueImportante": "Regra de ouro: Modelos de linguagem não têm acesso à 'verdade' ontológica, mas à probabilidade estatística de texto. Para tarefas que exigem fatos, forneça o material de referência no próprio prompt (RAG / Context Injection)."
+    }
+  }
+]

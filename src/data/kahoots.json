@@ -1,0 +1,119 @@
+[
+  {
+    "id": "kahoot-logica-01",
+    "titulo": "Kahoot: Lógica, Tipos Primitivos e Operadores",
+    "disciplinaId": "prog-computadores",
+    "moduloId": "mod-prog-01",
+    "descricao": "Quiz de fixação sobre tipos numéricos, precedência lógica e atribuição de variáveis.",
+    "urlKahoot": "https://kahoot.it",
+    "dataCriacao": "2026-03-01",
+    "statusRevisao": "pendente",
+    "resumoTeorico": "Antes de iniciar o quiz, lembre-se: variáveis são espaços de memória alocados dinamicamente para armazenar dados. A expressão lógica é avaliada da esquerda para a direita, respeitando a precedência aritmética e de agrupamentos.",
+    "conceitosCobrados": [
+      "Diferença entre atribuição (=) e comparação relacional (== ou ===)",
+      "Curto-circuito do operador AND (&&) e OR (||)",
+      "Divisão inteira vs divisão em ponto flutuante"
+    ],
+    "exemplosExplicativos": [
+      "Expressão: 4 + 2 * 3. Primeiro calcula 2 * 3 = 6, depois 4 + 6 = 10.",
+      "Expressão: !(5 > 3). Como 5 > 3 é verdadeiro, a negação (!) torna o resultado falso."
+    ],
+    "errosComuns": [
+      "Achar que o operador de soma (+) sempre fará conta aritmética: em tipos de texto (String), o (+) realiza concatenação.",
+      "Esquecer que parênteses forçam a resolução prioritária."
+    ],
+    "questoes": [
+      {
+        "id": "q1",
+        "pergunta": "Qual é o valor retornado pela expressão lógica: (10 > 5) && !(2 == 4)?",
+        "respostaCorreta": "Verdadeiro (True)",
+        "explicacao": "10 > 5 é verdadeiro. 2 == 4 é falso, mas com a negação !(falso) torna-se verdadeiro. Verdadeiro AND Verdadeiro resulta em Verdadeiro."
+      },
+      {
+        "id": "q2",
+        "pergunta": "Qual símbolo é utilizado na maioria das linguagens de programação para verificar igualdade de valor?",
+        "respostaCorreta": "==",
+        "explicacao": "O símbolo '=' é operador de atribuição. O símbolo '==' é operador relacional de comparação de igualdade."
+      },
+      {
+        "id": "q3",
+        "pergunta": "Em relação à memória RAM, o que ocorre quando declaramos uma constante?",
+        "respostaCorreta": "Um espaço é alocado e seu valor não pode ser reatribuído durante a execução.",
+        "explicacao": "Constantes são imutáveis após inicializadas, garantindo integridade e segurança de dados essenciais."
+      }
+    ],
+    "anotacoesPessoais": "Revisar tabela verdade antes da prova presencial do semestre."
+  },
+  {
+    "id": "kahoot-ux-01",
+    "titulo": "Kahoot: Heurísticas de Usabilidade e Design Centrado no Usuário",
+    "disciplinaId": "interface-ux",
+    "moduloId": "mod-ux-01",
+    "descricao": "Quiz avaliativo focado na identificação prática das 10 heurísticas de Jakob Nielsen.",
+    "urlKahoot": "https://kahoot.it",
+    "dataCriacao": "2026-03-02",
+    "statusRevisao": "pendente",
+    "resumoTeorico": "As heurísticas de Nielsen não são leis matemáticas, mas diretrizes empíricas consolidadas. A usabilidade depende da capacidade do usuário de concluir tarefas de forma rápida, eficiente e sem atritos desnecessários.",
+    "conceitosCobrados": [
+      "Feedback visual de status do sistema",
+      "Liberdade de ação e saída de emergência (Undo/Desfazer)",
+      "Prevenção ativa de erros vs tratamento de erros pós-falha"
+    ],
+    "exemplosExplicativos": [
+      "Uma barra de progresso ao enviar um arquivo demonstra a Heurística 1 (Visibilidade do status).",
+      "Um diálogo perguntando 'Tem certeza de que deseja excluir?' atende à Heurística 5 (Prevenção de erros)."
+    ],
+    "errosComuns": [
+      "Confundir a Heurística 5 (Prevenção de erros) com a Heurística 9 (Ajudar a reconhecer erros). A prevenção age ANTES que o erro ocorra.",
+      "Acreditar que telas bonitas compensam menus desorganizados ou links quebrados."
+    ],
+    "questoes": [
+      {
+        "id": "q1",
+        "pergunta": "Qual heurística de Nielsen recomenda disponibilizar atalhos de teclado para usuários experientes?",
+        "respostaCorreta": "Flexibilidade e Eficiência de Uso (Heurística 7)",
+        "explicacao": "Usuários novatos usam o menu visual, enquanto usuários experientes aceleram o fluxo por atalhos."
+      },
+      {
+        "id": "q2",
+        "pergunta": "Por que um botão 'Desfazer' (Undo) é essencial em editores modernos?",
+        "respostaCorreta": "Garante Controle e Liberdade do Usuário (Heurística 3).",
+        "explicacao": "Permite ao usuário explorar a ferramenta sem medo de perder trabalho acidentalmente."
+      }
+    ],
+    "anotacoesPessoais": "Memorizar os nomes exatos das heurísticas 1, 3 e 5 para o quiz da faculdade."
+  },
+  {
+    "id": "kahoot-prompt-01",
+    "titulo": "Kahoot: Engenharia de Prompts e Arquiteturas LLM",
+    "disciplinaId": "eng-prompt-ia",
+    "moduloId": "mod-ia-01",
+    "descricao": "Quiz sobre alinhamento de prompts, técnicas few-shot e mitigação de alucinações.",
+    "urlKahoot": "https://kahoot.it",
+    "dataCriacao": "2026-03-03",
+    "statusRevisao": "pendente",
+    "resumoTeorico": "LLMs são preditores autorregressivos de tokens. Um prompt bem arquitetado reduz o espaço de busca probabilística, direcionando a resposta com persona, delimitação de contexto e formato estrito.",
+    "conceitosCobrados": [
+      "Zero-shot vs Few-shot",
+      "Chain-of-Thought (Cadeia de Pensamento)",
+      "Alucinação e Grounding"
+    ],
+    "exemplosExplicativos": [
+      "Prompt Zero-shot: 'Classifique o sentimento deste tweet: Adorei o produto.'",
+      "Prompt Few-shot: Fornecer 2 tweets com o gabarito Positivo/Negativo antes do novo tweet a ser classificado."
+    ],
+    "errosComuns": [
+      "Pedir para o modelo gerar dados sem dar exemplos de saída esperada.",
+      "Achar que aumentar a temperatura torna o modelo 'mais inteligente'; na verdade aumenta a aleatoriedade (criatividade)."
+    ],
+    "questoes": [
+      {
+        "id": "q1",
+        "pergunta": "Qual é a principal vantagem da técnica Chain-of-Thought (Cadeia de Raciocínio)?",
+        "respostaCorreta": "Permite que o modelo decomponha problemas complexos em etapas intermediárias antes da resposta final.",
+        "explicacao": "Isso reduz expressivamente erros de lógica, cálculo e dedução dedutiva em LLMs."
+      }
+    ],
+    "anotacoesPessoais": ""
+  }
+]

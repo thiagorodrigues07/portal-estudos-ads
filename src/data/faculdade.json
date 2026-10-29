@@ -1,0 +1,15 @@
+{
+  "instituicao": "Universidade Cruzeiro do Sul",
+  "curso": "Análise e Desenvolvimento de Sistemas (ADS)",
+  "situacao": "Cursando",
+  "semestreAtual": 1,
+  "periodo": "Noturno",
+  "previsaoConclusao": "2027",
+  "observacoes": "Ambiente pessoal de estudos para acompanhamento da graduação em ADS.",
+  "gradeCurricular": [
+    {
+      "semestre": 1,
+      "disciplinas": ["prog-computadores", "interface-ux", "eng-prompt-ia"]
+    }
+  ]
+}

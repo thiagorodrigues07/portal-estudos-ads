@@ -1,0 +1,32 @@
+[
+  {
+    "id": "nota-git-01",
+    "titulo": "Comandos Essenciais do Git para Projetos Acadêmicos",
+    "categoria": "Git e GitHub",
+    "conteudo": "Comandos rápidos para salvar e versionar trabalhos no GitHub:\n\n- `git status`: visualiza arquivos alterados.\n- `git add .`: adiciona todos os arquivos à fila de commit.\n- `git commit -m 'mensagem'`: registra as alterações com descrição.\n- `git push origin main`: envia os commits para o repositório remoto.\n- `git pull origin main`: baixa as alterações remotas mais recentes.",
+    "tags": ["Git", "GitHub", "Terminal", "Versionamento"],
+    "disciplinaRelacionada": "prog-computadores",
+    "projetoRelacionado": "proj-plataforma-estudos",
+    "dataCriacao": "2026-03-01"
+  },
+  {
+    "id": "nota-js-01",
+    "titulo": "Diferença entre let, const e var no JavaScript",
+    "categoria": "JavaScript",
+    "conteudo": "- `const`: declara constantes de escopo de bloco. Não permite reatribuição de valor primitivo nem redeclaração.\n- `let`: declara variáveis mutáveis de escopo de bloco. Pode ser reatribuída, mas não redeclarada no mesmo escopo.\n- `var`: padrão antigo de escopo funcional ou global. Evitar o uso devido ao comportamento de içamento (hoisting).",
+    "tags": ["JavaScript", "Escopo", "Variáveis"],
+    "disciplinaRelacionada": "prog-computadores",
+    "projetoRelacionado": "proj-plataforma-estudos",
+    "dataCriacao": "2026-03-02"
+  },
+  {
+    "id": "nota-ia-01",
+    "titulo": "Padrão de Prompt RCR (Role, Context, Request)",
+    "categoria": "Engenharia de Prompt",
+    "conteudo": "Estrutura rápida para prompts eficientes:\n1. **Role (Papel)**: Quem o modelo deve simular (ex: Desenvolvedor Senior).\n2. **Context (Cenário)**: Quais são as limitações e tecnologias envolvidas.\n3. **Request (Pedido)**: Tarefa direta com formato de retorno explícito.",
+    "tags": ["IA", "Prompt", "LLM"],
+    "disciplinaRelacionada": "eng-prompt-ia",
+    "projetoRelacionado": "proj-plataforma-estudos",
+    "dataCriacao": "2026-03-03"
+  }
+]

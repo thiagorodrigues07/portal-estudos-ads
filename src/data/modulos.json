@@ -1,0 +1,140 @@
+[
+  {
+    "id": "mod-prog-01",
+    "disciplinaId": "prog-computadores",
+    "titulo": "Módulo 1: Fundamentos de Lógica e Variáveis",
+    "descricao": "Conceitos iniciais de algoritmos, tipos de dados primitivos, operadores lógicos e aritméticos.",
+    "objetivos": [
+      "Compreender a diferença entre dados e instruções",
+      "Declarar e manipular variáveis e constantes",
+      "Aplicar operadores lógicos e relacionais corretamente"
+    ],
+    "resumoTeorico": "Algoritmos são sequências finitas e lógicas de passos para resolução de problemas. Na programação de computadores, as variáveis reservam espaço na memória RAM para armazenar dados manipuláveis em tempo de execução.",
+    "conceitosPrincipais": [
+      "Tipagem de dados (inteiro, ponto flutuante, booleano, caractere)",
+      "Atribuição vs Igualdade",
+      "Tabela verdade e operadores lógicos (AND, OR, NOT)"
+    ],
+    "definicoes": [
+      {
+        "termo": "Variável",
+        "significado": "Identificador que aponta para um endereço de memória cujo valor pode se alterar durante a execução."
+      },
+      {
+        "termo": "Constante",
+        "significado": "Identificador com valor fixado em sua inicialização, imutável ao longo da execução."
+      }
+    ],
+    "exemplosPraticos": "Cálculo de média ponderada e conversão de temperaturas (Celsius para Fahrenheit).",
+    "codigoExemplo": "// Exemplo em JavaScript:\nconst nota1 = 8.5;\nconst nota2 = 7.0;\nconst media = (nota1 + nota2) / 2;\nconsole.log(`Média do aluno: ${media.toFixed(1)}`);",
+    "errosComuns": [
+      "Confundir o operador de atribuição (=) com o de comparação (== ou ===).",
+      "Divisão por zero sem tratamento prévio.",
+      "Esquecer de converter entrada de texto do usuário (String) para tipo numérico antes de realizar cálculos."
+    ],
+    "pontosMemorizar": [
+      "Precedência de operadores: parênteses têm prioridade máxima.",
+      "Em operações lógicas com AND (&&), se o primeiro for falso, a expressão inteira é falsa (curto-circuito)."
+    ],
+    "questoesRevisao": [
+      "Qual a saída da expressão: !(true && false) || (5 > 10)?",
+      "Por que declarar tipos de dados adequados previne desperdício de memória?"
+    ],
+    "materiaisComplementares": [],
+    "kahootId": "kahoot-logica-01",
+    "status": "estudando",
+    "dataUltimaRevisao": "2026-03-01",
+    "isDemonstracao": false
+  },
+  {
+    "id": "mod-ux-01",
+    "disciplinaId": "interface-ux",
+    "titulo": "Módulo 1: Fundamentos de UX e Heurísticas de Nielsen",
+    "descricao": "Introdução ao design centrado no usuário, usabilidade e as 10 heurísticas fundamentais de Jakob Nielsen.",
+    "objetivos": [
+      "Diferenciar Interface do Usuário (UI) de Experiência do Usuário (UX)",
+      "Analisar produtos digitais com base nas Heurísticas de Nielsen",
+      "Identificar falhas de usabilidade e propor correções"
+    ],
+    "resumoTeorico": "User Experience (UX) abrange todas as percepções, emoções e respostas do usuário resultantes do uso ou antecipação do uso de um produto digital. A interface (UI) é o meio físico/visual pelo qual essa interação ocorre.",
+    "conceitosPrincipais": [
+      "Visibilidade do status do sistema",
+      "Correspondência entre o sistema e o mundo real",
+      "Controle e liberdade do usuário (botão desfaça/cancelar)"
+    ],
+    "definicoes": [
+      {
+        "termo": "Heurística",
+        "significado": "Regra prática ou princípio geral que orienta o design e a avaliação de usabilidade sem substituir testes reais com usuários."
+      }
+    ],
+    "exemplosPraticos": "Análise de fluxo de checkout em e-commerce e botões de 'Desfazer envio' em caixas de e-mail.",
+    "codigoExemplo": "/* Exemplo de foco visível essencial para acessibilidade */\nbutton:focus-visible {\n  outline: 2px solid #0284c7;\n  outline-offset: 2px;\n}",
+    "errosComuns": [
+      "Presumir que 'o designer é o usuário final'.",
+      "Priorizar estética visual em detrimento da clareza e facilidade de navegação.",
+      "Não prover feedback imediato ao usuário após uma ação (ex: clique sem indicador de carregamento)."
+    ],
+    "pontosMemorizar": [
+      "Heurística 1: O usuário precisa sempre saber o que está acontecendo (Feedback contínuo).",
+      "Heurística 5: Prevenir o erro é sempre melhor do que exibir uma mensagem de erro compreensível."
+    ],
+    "questoesRevisao": [
+      "Como a heurística de reconhecimento em vez de memorização se aplica a menus suspensos?",
+      "Qual heurística fundamenta a existência de uma lixeira ou botão de 'Desfazer'?"
+    ],
+    "materiaisComplementares": [],
+    "kahootId": "kahoot-ux-01",
+    "status": "nao_iniciado",
+    "dataUltimaRevisao": "",
+    "isDemonstracao": false
+  },
+  {
+    "id": "mod-ia-01",
+    "disciplinaId": "eng-prompt-ia",
+    "titulo": "Módulo 1: Princípios de Engenharia de Prompt e LLMs",
+    "descricao": "Estrutura de comandos eficazes, contexto, personas, pouca amostra (few-shot) e restrições.",
+    "objetivos": [
+      "Compreender o funcionamento probabilístico de modelos de linguagem (LLMs)",
+      "Estruturar prompts robustos usando elementos de contexto, instrução e formato de saída",
+      "Evitar alucinações de modelos de linguagem através de restrições rígidas"
+    ],
+    "resumoTeorico": "Modelos de linguagem prevêem o próximo token mais provável com base nos tokens anteriores. A Engenharia de Prompt é a disciplina de estruturar textos de entrada de modo a guiar o modelo até respostas precisas, coerentes e alinhadas ao objetivo técnico.",
+    "conceitosPrincipais": [
+      "Zero-Shot vs Few-Shot Prompting",
+      "Chain-of-Thought (Raciocínio passo a passo)",
+      "Role-playing / Definição de Persona técnica",
+      "Temperatura e Top-P"
+    ],
+    "definicoes": [
+      {
+        "termo": "Token",
+        "significado": "Unidade básica de texto (caractere, sílaba ou palavra inteira) processada pelos modelos de inteligência artificial."
+      },
+      {
+        "termo": "Alucinação",
+        "significado": "Resposta gerada por um modelo de IA que soa confiante e gramaticalmente correta, porém é factual ou logicamente falsa."
+      }
+    ],
+    "exemplosPraticos": "Criação de prompts para geração de testes unitários automatizados em JavaScript/Python com formato JSON estrito.",
+    "codigoExemplo": "# Template de prompt estruturado:\n\"\"\"\nVocê é um especialista em QA de software.\nInstrução: Escreva 3 testes unitários para a função abaixo.\nFormato: Responda exclusivamente com código no bloco de testes, sem introdução.\nCódigo: [inserir função]\n\"\"\"",
+    "errosComuns": [
+      "Fazer perguntas abertas demais sem delimitar o escopo ou formato desejado.",
+      "Confiar cegamente em dados numéricos ou referências bibliográficas geradas sem validação externa.",
+      "Não instruir o modelo a responder 'Não sei' caso a informação não esteja no contexto fornecido."
+    ],
+    "pontosMemorizar": [
+      "Especificar o papel (Persona), a tarefa clara (Instrução), as restrições (Guardrails) e o formato de saída (Markdown, JSON).",
+      "Chain-of-Thought força o modelo a verbalizar o raciocínio intermediário antes da resposta final, reduzindo erros lógicos."
+    ],
+    "questoesRevisao": [
+      "Qual a diferença operacional entre Zero-shot e Few-shot prompting?",
+      "Como o parâmetro de 'temperatura' afeta a previsibilidade das respostas da IA?"
+    ],
+    "materiaisComplementares": [],
+    "kahootId": "kahoot-prompt-01",
+    "status": "estudando",
+    "dataUltimaRevisao": "2026-03-02",
+    "isDemonstracao": false
+  }
+]

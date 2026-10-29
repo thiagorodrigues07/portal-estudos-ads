@@ -1,0 +1,32 @@
+[
+  {
+    "id": "prog-computadores",
+    "nome": "Programação de Computadores",
+    "semestre": 1,
+    "status": "Em andamento",
+    "professor": "",
+    "descricao": "Estudo de lógica de programação, algoritmos, estruturas de dados básicas, variáveis, tipos primitivos, estruturas condicionais e de repetição.",
+    "links": [],
+    "anotacoes": ""
+  },
+  {
+    "id": "interface-ux",
+    "nome": "Interface e Jornada do Usuário",
+    "semestre": 1,
+    "status": "Em andamento",
+    "professor": "",
+    "descricao": "Fundamentos de UI e UX, princípios de usabilidade, heurísticas de Nielsen, acessibilidade, arquitetura de informação e mapeamento da jornada do usuário.",
+    "links": [],
+    "anotacoes": ""
+  },
+  {
+    "id": "eng-prompt-ia",
+    "nome": "Engenharia de Prompt e Aplicações em IA",
+    "semestre": 1,
+    "status": "Em andamento",
+    "professor": "",
+    "descricao": "Técnicas de engenharia de prompts, arquiteturas de modelos LLM, alinhamento contextual, automação e aplicações práticas de Inteligência Artificial no desenvolvimento de software.",
+    "links": [],
+    "anotacoes": ""
+  }
+]
