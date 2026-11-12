@@ -26,8 +26,8 @@ export default function ResumoLeitor() {
     kahoots,
     isFavorite,
     toggleFavorite,
-    reviews,
-    markAsReviewed
+    spacedReviews,
+    recordSpacedReview
   } = useStudy();
 
   const resumo = resumos.find(r => r.id === id);
@@ -50,8 +50,12 @@ export default function ResumoLeitor() {
   const kahoot = kahoots.find(k => k.moduloId === resumo.moduloId || k.disciplinaId === resumo.disciplinaId);
 
   const favorito = isFavorite(resumo.id);
-  const foiRevisado = reviews[resumo.id]?.revisado;
-  const dataRevisao = reviews[resumo.id]?.dataUltimaRevisao;
+  const foiRevisado = spacedReviews[resumo.id]?.status === 'estudado' || spacedReviews[resumo.id]?.status === 'revisao_pendente' || spacedReviews[resumo.id]?.status === 'em_revisao' || spacedReviews[resumo.id]?.status === 'dominado';
+  const dataRevisao = spacedReviews[resumo.id]?.lastReviewDate;
+
+  const handleMarcarRevisado = () => {
+    recordSpacedReview(resumo.id, 'resumo', { titulo: resumo.titulo, dificuldade: false });
+  };
 
   const handlePrint = () => {
     window.print();
@@ -72,7 +76,7 @@ export default function ResumoLeitor() {
         <div className="flex items-center gap-2">
           {/* Botão Marcar como Revisado */}
           <button
-            onClick={() => markAsReviewed(resumo.id)}
+            onClick={() => handleMarcarRevisado()}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
               foiRevisado
                 ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'

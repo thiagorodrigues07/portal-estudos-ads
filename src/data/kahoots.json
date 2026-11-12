@@ -5,7 +5,9 @@
     "disciplinaId": "prog-computadores",
     "moduloId": "mod-prog-01",
     "descricao": "Quiz de fixação sobre tipos numéricos, precedência lógica e atribuição de variáveis.",
-    "urlKahoot": "https://kahoot.it",
+    "urlKahoot": "",
+    "isDemonstracao": true,
+    "avisoLink": "Link original pendente de cadastro. Adicione a URL do seu Kahoot para abrir diretamente.",
     "dataCriacao": "2026-03-01",
     "statusRevisao": "pendente",
     "resumoTeorico": "Antes de iniciar o quiz, lembre-se: variáveis são espaços de memória alocados dinamicamente para armazenar dados. A expressão lógica é avaliada da esquerda para a direita, respeitando a precedência aritmética e de agrupamentos.",
@@ -42,7 +44,7 @@
         "explicacao": "Constantes são imutáveis após inicializadas, garantindo integridade e segurança de dados essenciais."
       }
     ],
-    "anotacoesPessoais": "Revisar tabela verdade antes da prova presencial do semestre."
+    "anotacoesPessoais": ""
   },
   {
     "id": "kahoot-ux-01",
@@ -50,7 +52,9 @@
     "disciplinaId": "interface-ux",
     "moduloId": "mod-ux-01",
     "descricao": "Quiz avaliativo focado na identificação prática das 10 heurísticas de Jakob Nielsen.",
-    "urlKahoot": "https://kahoot.it",
+    "urlKahoot": "",
+    "isDemonstracao": true,
+    "avisoLink": "Link original pendente de cadastro. Adicione a URL do seu Kahoot para abrir diretamente.",
     "dataCriacao": "2026-03-02",
     "statusRevisao": "pendente",
     "resumoTeorico": "As heurísticas de Nielsen não são leis matemáticas, mas diretrizes empíricas consolidadas. A usabilidade depende da capacidade do usuário de concluir tarefas de forma rápida, eficiente e sem atritos desnecessários.",
@@ -81,7 +85,7 @@
         "explicacao": "Permite ao usuário explorar a ferramenta sem medo de perder trabalho acidentalmente."
       }
     ],
-    "anotacoesPessoais": "Memorizar os nomes exatos das heurísticas 1, 3 e 5 para o quiz da faculdade."
+    "anotacoesPessoais": ""
   },
   {
     "id": "kahoot-prompt-01",
@@ -89,7 +93,9 @@
     "disciplinaId": "eng-prompt-ia",
     "moduloId": "mod-ia-01",
     "descricao": "Quiz sobre alinhamento de prompts, técnicas few-shot e mitigação de alucinações.",
-    "urlKahoot": "https://kahoot.it",
+    "urlKahoot": "",
+    "isDemonstracao": true,
+    "avisoLink": "Link original pendente de cadastro. Adicione a URL do seu Kahoot para abrir diretamente.",
     "dataCriacao": "2026-03-03",
     "statusRevisao": "pendente",
     "resumoTeorico": "LLMs são preditores autorregressivos de tokens. Um prompt bem arquitetado reduz o espaço de busca probabilística, direcionando a resposta com persona, delimitação de contexto e formato estrito.",

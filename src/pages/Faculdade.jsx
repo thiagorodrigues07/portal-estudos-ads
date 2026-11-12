@@ -16,17 +16,7 @@ import {
 import Badge from '../components/common/Badge';
 
 export default function Faculdade() {
-  const { faculdade, setFaculdade, disciplinas } = useStudy();
-
-  // Estado local para adicionar novas observações ou datas acadêmicas
-  const [novasAnotacoes, setNovasAnotacoes] = useState(() => {
-    try {
-      const saved = localStorage.getItem('portal_ads_anotacoes_faculdade');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const { faculdade, setFaculdade, disciplinas, faculdadeAnotacoes, setFaculdadeAnotacoes } = useStudy();
 
   const [tituloAnotacao, setTituloAnotacao] = useState('');
   const [dataAnotacao, setDataAnotacao] = useState('');
@@ -41,18 +31,16 @@ export default function Faculdade() {
       data: dataAnotacao,
       descricao: descAnotacao.trim()
     };
-    const listaAtualizada = [novoItem, ...novasAnotacoes];
-    setNovasAnotacoes(listaAtualizada);
-    localStorage.setItem('portal_ads_anotacoes_faculdade', JSON.stringify(listaAtualizada));
+    const listaAtualizada = [novoItem, ...(faculdadeAnotacoes || [])];
+    setFaculdadeAnotacoes(listaAtualizada);
     setTituloAnotacao('');
     setDataAnotacao('');
     setDescAnotacao('');
   };
 
   const handleRemoverAnotacao = (id) => {
-    const listaAtualizada = novasAnotacoes.filter(item => item.id !== id);
-    setNovasAnotacoes(listaAtualizada);
-    localStorage.setItem('portal_ads_anotacoes_faculdade', JSON.stringify(listaAtualizada));
+    const listaAtualizada = (faculdadeAnotacoes || []).filter(item => item.id !== id);
+    setFaculdadeAnotacoes(listaAtualizada);
   };
 
   return (

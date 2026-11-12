@@ -64,14 +64,14 @@ export default function SearchModal() {
     // 2. Módulos
     modulos.forEach(m => {
       const matchConceitos = m.conceitosPrincipais?.some(c => c.toLowerCase().includes(q));
-      if (m.titulo.toLowerCase().includes(q) || m.descricao.toLowerCase().includes(q) || matchConceitos) {
+      if (m.titulo.toLowerCase().includes(q) || m.descricao?.toLowerCase().includes(q) || matchConceitos) {
         matches.push({
-          tipo: 'Módulo',
+          tipo: 'Módulo de Estudo',
           icon: Layers,
           id: m.id,
           titulo: m.titulo,
           subtitulo: m.descricao,
-          link: `/disciplinas/${m.disciplinaId}`
+          link: `/modulos/${m.id}`
         });
       }
     });
@@ -79,13 +79,13 @@ export default function SearchModal() {
     // 3. Resumos
     resumos.forEach(r => {
       const matchTag = r.tags?.some(t => t.toLowerCase().includes(q));
-      if (r.titulo.toLowerCase().includes(q) || r.assunto.toLowerCase().includes(q) || matchTag) {
+      if (r.titulo.toLowerCase().includes(q) || r.assunto?.toLowerCase().includes(q) || matchTag) {
         matches.push({
-          tipo: 'Resumo',
+          tipo: 'Resumo Teórico',
           icon: FileText,
           id: r.id,
           titulo: r.titulo,
-          subtitulo: `${r.assunto} • ${r.tags.join(', ')}`,
+          subtitulo: `${r.assunto} • ${r.tags?.join(', ')}`,
           link: `/resumos/${r.id}`
         });
       }
@@ -94,7 +94,7 @@ export default function SearchModal() {
     // 4. Kahoots & Questões
     kahoots.forEach(k => {
       const matchQuestao = k.questoes?.some(qu => qu.pergunta.toLowerCase().includes(q) || qu.respostaCorreta.toLowerCase().includes(q));
-      if (k.titulo.toLowerCase().includes(q) || k.descricao.toLowerCase().includes(q) || matchQuestao) {
+      if (k.titulo.toLowerCase().includes(q) || k.descricao?.toLowerCase().includes(q) || matchQuestao) {
         matches.push({
           tipo: 'Kahoot / Quiz',
           icon: HelpCircle,
@@ -109,13 +109,13 @@ export default function SearchModal() {
     // 5. Projetos
     projetos.forEach(p => {
       const matchTec = p.tecnologias?.some(t => t.toLowerCase().includes(q));
-      if (p.nome.toLowerCase().includes(q) || p.descricao.toLowerCase().includes(q) || matchTec) {
+      if (p.nome.toLowerCase().includes(q) || p.descricao?.toLowerCase().includes(q) || matchTec) {
         matches.push({
           tipo: 'Projeto',
           icon: FolderGit2,
           id: p.id,
           titulo: p.nome,
-          subtitulo: p.tecnologias.join(' • '),
+          subtitulo: p.tecnologias?.join(' • '),
           link: `/projetos/${p.id}`
         });
       }
@@ -124,13 +124,13 @@ export default function SearchModal() {
     // 6. Notas Técnicas
     notas.forEach(n => {
       const matchTag = n.tags?.some(t => t.toLowerCase().includes(q));
-      if (n.titulo.toLowerCase().includes(q) || n.categoria.toLowerCase().includes(q) || n.conteudo.toLowerCase().includes(q) || matchTag) {
+      if (n.titulo.toLowerCase().includes(q) || n.categoria?.toLowerCase().includes(q) || n.conteudo?.toLowerCase().includes(q) || matchTag) {
         matches.push({
           tipo: 'Nota Técnica',
           icon: FileCode,
           id: n.id,
           titulo: n.titulo,
-          subtitulo: `${n.categoria} • ${n.tags.join(', ')}`,
+          subtitulo: `${n.categoria} • ${n.tags?.join(', ')}`,
           link: `/notas`
         });
       }
@@ -202,16 +202,16 @@ export default function SearchModal() {
                   className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group"
                 >
                   <div className="flex items-start gap-3 min-w-0 pr-2">
-                    <div className="p-2 rounded-lg bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 mt-0.5 shrink-0">
+                    <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0">
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-medium uppercase tracking-wider text-sky-600 dark:text-sky-400">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
                           {item.tipo}
                         </span>
                       </div>
-                      <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                      <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                         {item.titulo}
                       </h4>
                       <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
@@ -219,7 +219,7 @@ export default function SearchModal() {
                       </p>
                     </div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-sky-600 dark:group-hover:text-sky-400 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                  <ArrowRight className="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 shrink-0 transition-transform group-hover:translate-x-0.5" />
                 </div>
               );
             })

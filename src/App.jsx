@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard';
 import Faculdade from './pages/Faculdade';
 import Disciplinas from './pages/Disciplinas';
 import DisciplinaDetalhe from './pages/DisciplinaDetalhe';
+import ModuloDetalhe from './pages/ModuloDetalhe';
+import RevisoesHoje from './pages/RevisoesHoje';
 import Resumos from './pages/Resumos';
 import ResumoLeitor from './pages/ResumoLeitor';
 import Kahoots from './pages/Kahoots';
@@ -14,6 +16,7 @@ import Projetos from './pages/Projetos';
 import ProjetoDetalhe from './pages/ProjetoDetalhe';
 import NotasTecnicas from './pages/NotasTecnicas';
 import GerenciadorConteudo from './pages/GerenciadorConteudo';
+import Backup from './pages/Backup';
 
 export default function App() {
   return (
@@ -22,17 +25,20 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
-            <Route path="faculdade" element={<Faculdade />} />
+            <Route path="revisoes" element={<RevisoesHoje />} />
             <Route path="disciplinas" element={<Disciplinas />} />
             <Route path="disciplinas/:id" element={<DisciplinaDetalhe />} />
-            <Route path="resumos" element={<Resumos />} />
-            <Route path="resumos/:id" element={<ResumoLeitor />} />
+            <Route path="modulos/:id" element={<ModuloDetalhe />} />
             <Route path="kahoots" element={<Kahoots />} />
             <Route path="kahoots/:id" element={<KahootDetalhe />} />
+            <Route path="resumos" element={<Resumos />} />
+            <Route path="resumos/:id" element={<ResumoLeitor />} />
+            <Route path="faculdade" element={<Faculdade />} />
+            <Route path="backup" element={<Backup />} />
+            <Route path="gerenciador" element={<GerenciadorConteudo />} />
             <Route path="projetos" element={<Projetos />} />
             <Route path="projetos/:id" element={<ProjetoDetalhe />} />
             <Route path="notas" element={<NotasTecnicas />} />
-            <Route path="gerenciador" element={<GerenciadorConteudo />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

@@ -16,7 +16,9 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
-  BrainCircuit
+  BrainCircuit,
+  Calendar,
+  Play
 } from 'lucide-react';
 import Badge from '../components/common/Badge';
 import CodeBlock from '../components/common/CodeBlock';
@@ -30,8 +32,9 @@ export default function DisciplinaDetalhe() {
     resumos,
     kahoots,
     projetos,
-    moduleProgress,
-    updateModuleProgress
+    setModuleManualStatus,
+    spacedReviews,
+    getKahootAttempts
   } = useStudy();
 
   const [abaAtiva, setAbaAtiva] = useState('modulos');
@@ -58,7 +61,7 @@ export default function DisciplinaDetalhe() {
   const projetosDaDisc = projetos.filter(p => p.disciplinasRelacionadas?.includes(disciplina.id));
 
   const totalModulos = modulosDaDisc.length;
-  const concluidos = modulosDaDisc.filter(m => (moduleProgress[m.id] || m.status) === 'concluido').length;
+  const concluidos = modulosDaDisc.filter(m => m.status === 'estudado' || m.status === 'dominado').length;
   const progresso = totalModulos > 0 ? Math.round((concluidos / totalModulos) * 100) : 0;
 
   const toggleAccordion = (modId) => {
@@ -66,11 +69,11 @@ export default function DisciplinaDetalhe() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-5xl">
+    <div className="space-y-6 animate-fade-in max-w-5xl pb-16">
       {/* Botão de Retorno */}
       <Link
         to="/disciplinas"
-        className="inline-flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400 transition-colors"
+        className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Voltar para todas as disciplinas
@@ -120,7 +123,7 @@ export default function DisciplinaDetalhe() {
           className={`pb-3 px-1 border-b-2 flex items-center gap-2 transition-colors ${
             abaAtiva === 'modulos'
               ? 'border-sky-600 text-sky-600 dark:text-sky-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'
           }`}
         >
           <Layers className="w-4 h-4" />
@@ -132,7 +135,7 @@ export default function DisciplinaDetalhe() {
           className={`pb-3 px-1 border-b-2 flex items-center gap-2 transition-colors ${
             abaAtiva === 'resumos'
               ? 'border-sky-600 text-sky-600 dark:text-sky-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'
           }`}
         >
           <FileText className="w-4 h-4" />
@@ -144,7 +147,7 @@ export default function DisciplinaDetalhe() {
           className={`pb-3 px-1 border-b-2 flex items-center gap-2 transition-colors ${
             abaAtiva === 'kahoots'
               ? 'border-sky-600 text-sky-600 dark:text-sky-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'
           }`}
         >
           <HelpCircle className="w-4 h-4" />
@@ -157,7 +160,7 @@ export default function DisciplinaDetalhe() {
             className={`pb-3 px-1 border-b-2 flex items-center gap-2 transition-colors ${
               abaAtiva === 'projetos'
                 ? 'border-sky-600 text-sky-600 dark:text-sky-400'
-                : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+                : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'
             }`}
           >
             <FolderGit2 className="w-4 h-4" />
@@ -176,9 +179,10 @@ export default function DisciplinaDetalhe() {
             />
           ) : (
             modulosDaDisc.map((modulo) => {
-              const statusAtual = moduleProgress[modulo.id] || modulo.status || 'nao_iniciado';
+              const statusAtual = modulo.status || 'nao_iniciado';
               const estaAberto = moduloAberto === modulo.id;
-              const kahootVinculado = kahoots.find(k => k.id === modulo.kahootId);
+              const kahootVinculado = kahoots.find(k => k.id === modulo.kahootId || k.moduloId === modulo.id);
+              const reviewInfo = spacedReviews[modulo.id] || null;
 
               return (
                 <div
@@ -189,30 +193,31 @@ export default function DisciplinaDetalhe() {
                   <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1.5">
-                        {statusAtual === 'concluido' && (
+                        {statusAtual === 'dominado' || statusAtual === 'estudado' ? (
                           <Badge variant="success" size="xs">
                             <CheckCircle2 className="w-3 h-3" />
-                            Concluído
+                            {statusAtual === 'dominado' ? 'Dominado' : 'Estudado'}
                           </Badge>
-                        )}
-                        {statusAtual === 'estudando' && (
+                        ) : statusAtual === 'em_estudo' || statusAtual === 'estudando' ? (
                           <Badge variant="warning" size="xs">
                             <Clock className="w-3 h-3" />
-                            Estudando
+                            Em Estudo
                           </Badge>
-                        )}
-                        {statusAtual === 'nao_iniciado' && (
+                        ) : (
                           <Badge variant="default" size="xs">
                             <Circle className="w-3 h-3" />
                             Não iniciado
                           </Badge>
                         )}
-                        {modulo.dataUltimaRevisao && (
-                          <span className="text-[11px] text-slate-400">
-                            Última revisão: {modulo.dataUltimaRevisao}
+
+                        {reviewInfo?.nextReviewDate && (
+                          <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            Próxima rev: {reviewInfo.nextReviewDate}
                           </span>
                         )}
                       </div>
+
                       <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
                         {modulo.titulo}
                       </h3>
@@ -223,47 +228,39 @@ export default function DisciplinaDetalhe() {
 
                     {/* Controles de Ação rápida */}
                     <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                      {/* Alternador de Status */}
+                      {/* Alternador de Status Manual */}
                       <select
-                        value={statusAtual}
-                        onChange={(e) => updateModuleProgress(modulo.id, e.target.value)}
+                        value={statusAtual === 'estudando' ? 'em_estudo' : statusAtual}
+                        onChange={(e) => setModuleManualStatus(modulo.id, e.target.value)}
                         className="px-2.5 py-1 text-xs rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 outline-none"
                       >
                         <option value="nao_iniciado">Não iniciado</option>
-                        <option value="estudando">Estudando</option>
-                        <option value="concluido">Concluído</option>
+                        <option value="em_estudo">Em estudo</option>
+                        <option value="estudado">Estudado</option>
+                        <option value="dominado">Dominado</option>
                       </select>
 
-                      {/* Botão de Expansão */}
+                      <Link
+                        to={`/modulos/${modulo.id}`}
+                        className="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold flex items-center gap-1 shadow-2xs"
+                      >
+                        <span>Estudar Módulo</span>
+                      </Link>
+
+                      {/* Botão de Expansão Rápida */}
                       <button
                         onClick={() => toggleAccordion(modulo.id)}
                         className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                        title={estaAberto ? "Recolher detalhes" : "Expandir detalhes"}
+                        title={estaAberto ? "Recolher detalhes" : "Visualização rápida"}
                       >
                         {estaAberto ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                       </button>
                     </div>
                   </div>
 
-                  {/* Corpo Detalhado Expansível */}
+                  {/* Prévia Rápida Expansível */}
                   {estaAberto && (
-                    <div className="px-5 pb-6 pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-5 text-xs sm:text-sm">
-                      {/* Objetivos */}
-                      {modulo.objetivos?.length > 0 && (
-                        <div>
-                          <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-1.5">
-                            <Lightbulb className="w-4 h-4 text-amber-500" />
-                            Objetivos de Aprendizagem
-                          </h4>
-                          <ul className="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-300">
-                            {modulo.objetivos.map((obj, i) => (
-                              <li key={i}>{obj}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {/* Resumo Teórico */}
+                    <div className="px-5 pb-6 pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-4 text-xs sm:text-sm">
                       {modulo.resumoTeorico && (
                         <div>
                           <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-1">
@@ -275,77 +272,16 @@ export default function DisciplinaDetalhe() {
                         </div>
                       )}
 
-                      {/* Conceitos Principais e Definições */}
-                      {modulo.conceitosPrincipais?.length > 0 && (
-                        <div>
-                          <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-1.5">
-                            Conceitos Principais
-                          </h4>
-                          <div className="flex flex-wrap gap-1.5">
-                            {modulo.conceitosPrincipais.map((c, i) => (
-                              <span key={i} className="px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-300 text-xs font-medium border border-sky-100 dark:border-sky-900">
-                                {c}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Código de Exemplo */}
-                      {modulo.codigoExemplo && (
-                        <div>
-                          <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-1">
-                            Exemplo Prático de Código
-                          </h4>
-                          <CodeBlock code={modulo.codigoExemplo} language="javascript" />
-                        </div>
-                      )}
-
-                      {/* Erros Comuns e Atenção */}
-                      {modulo.errosComuns?.length > 0 && (
-                        <div className="p-3.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40">
-                          <h4 className="font-semibold text-amber-800 dark:text-amber-300 mb-1.5 flex items-center gap-1.5">
-                            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                            Erros e Confusões Comuns
-                          </h4>
-                          <ul className="list-disc list-inside space-y-1 text-amber-900/90 dark:text-amber-200/90">
-                            {modulo.errosComuns.map((err, i) => (
-                              <li key={i}>{err}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {/* Pontos para Memorizar */}
-                      {modulo.pontosMemorizar?.length > 0 && (
-                        <div className="p-3.5 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-900/40">
-                          <h4 className="font-semibold text-indigo-800 dark:text-indigo-300 mb-1.5 flex items-center gap-1.5">
-                            <BrainCircuit className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                            Pontos para Memorizar (Chave para Provas)
-                          </h4>
-                          <ul className="list-disc list-inside space-y-1 text-indigo-900/90 dark:text-indigo-200/90">
-                            {modulo.pontosMemorizar.map((pt, i) => (
-                              <li key={i}>{pt}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {/* Link de Kahoot Vinculado */}
                       {kahootVinculado && (
-                        <div className="pt-2 flex items-center justify-between bg-sky-50 dark:bg-sky-950/40 p-3 rounded-xl border border-sky-100 dark:border-sky-900">
-                          <div className="flex items-center gap-2">
-                            <HelpCircle className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-                            <span className="font-medium text-slate-800 dark:text-slate-200">
-                              Kahoot Vinculado: {kahootVinculado.titulo}
-                            </span>
-                          </div>
+                        <div className="flex items-center justify-between bg-amber-50 dark:bg-amber-950/40 p-3 rounded-xl border border-amber-200 dark:border-amber-900/60 text-xs">
+                          <span className="font-semibold text-slate-800 dark:text-slate-200">
+                            Kahoot deste módulo: {kahootVinculado.titulo}
+                          </span>
                           <Link
                             to={`/kahoots/${kahootVinculado.id}`}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-sky-600 text-white hover:bg-sky-500 font-semibold text-xs transition-colors"
+                            className="px-3 py-1 rounded-lg bg-amber-600 text-white font-semibold text-xs hover:bg-amber-500"
                           >
-                            <span>Revisar Kahoot</span>
-                            <ExternalLink className="w-3.5 h-3.5" />
+                            Abrir Kahoot
                           </Link>
                         </div>
                       )}
@@ -401,27 +337,30 @@ export default function DisciplinaDetalhe() {
               description="Vincule seus quizzes nesta disciplina para preparar o estudo antes de realizá-los."
             />
           ) : (
-            kahootsDaDisc.map((k) => (
-              <div
-                key={k.id}
-                className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between"
-              >
-                <div>
-                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">
-                    {k.titulo}
-                  </h4>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {k.questoes?.length || 0} questões com gabarito explicado
-                  </p>
-                </div>
-                <Link
-                  to={`/kahoots/${k.id}`}
-                  className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold transition-colors"
+            kahootsDaDisc.map((k) => {
+              const attempts = getKahootAttempts(k.id);
+              return (
+                <div
+                  key={k.id}
+                  className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between"
                 >
-                  Abrir Central de Estudo
-                </Link>
-              </div>
-            ))
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                      {k.titulo}
+                    </h4>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {k.questoes?.length || 0} questões • {attempts.length} tentativa(s) registradas
+                    </p>
+                  </div>
+                  <Link
+                    to={`/kahoots/${k.id}`}
+                    className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold transition-colors"
+                  >
+                    Estudar Quiz
+                  </Link>
+                </div>
+              );
+            })
           )}
         </div>
       )}
