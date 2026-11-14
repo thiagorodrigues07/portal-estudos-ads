@@ -7,68 +7,34 @@ import kahootsData from '../data/kahoots.json';
 import projetosData from '../data/projetos.json';
 import notasData from '../data/notas.json';
 
+import { getItem, setItem, clearAllStorage, getSnapshotHistory, createAutoSnapshot } from '../services/storageService';
+import { runMigrations, CURRENT_STORAGE_PREFIX } from '../services/migrationService';
+import { calculateSM2, getTodayDateString, addDays, SM2_GRADES } from '../services/sm2Service';
+import { buildBackupPayload, parseAndValidateBackup } from '../services/backupService';
+import { useAcademic } from '../hooks/useAcademic';
+import { useSpacedRepetition } from '../hooks/useSpacedRepetition';
+import { useFlashcards } from '../hooks/useFlashcards';
+import { useCalendar } from '../hooks/useCalendar';
+import { useStudyTimer } from '../hooks/useStudyTimer';
+
 const StudyContext = createContext(null);
 
-const STORAGE_PREFIX = 'portal_ads_v2_';
-
 // Utilitário para formatar data atual no padrão YYYY-MM-DD (local)
-export const getTodayString = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
+export const getTodayString = getTodayDateString;
 
 // Utilitário para adicionar dias a uma data
-export const addDaysToDate = (dateStr, days) => {
-  const d = new Date(dateStr ? `${dateStr}T12:00:00` : `${getTodayString()}T12:00:00`);
-  d.setDate(d.getDate() + Number(days));
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-// Carregador seguro do LocalStorage com merge
-const loadFromStorage = (key, defaultData) => {
-  try {
-    const raw = localStorage.getItem(`${STORAGE_PREFIX}${key}`);
-    if (!raw) return defaultData;
-    const parsed = JSON.parse(raw);
-    
-    // Se for array de objetos com 'id', faz merge mantendo customizações
-    if (Array.isArray(defaultData) && Array.isArray(parsed)) {
-      const parsedMap = new Map(parsed.map(item => [item.id, item]));
-      // Adiciona itens default que ainda não existem
-      defaultData.forEach(item => {
-        if (!parsedMap.has(item.id)) {
-          parsedMap.set(item.id, item);
-        }
-      });
-      return Array.from(parsedMap.values());
-    }
-    
-    return parsed;
-  } catch (e) {
-    console.warn(`Erro ao carregar chave ${key} do localStorage:`, e);
-    return defaultData;
-  }
-};
-
-const saveToStorage = (key, data) => {
-  try {
-    localStorage.setItem(`${STORAGE_PREFIX}${key}`, JSON.stringify(data));
-  } catch (e) {
-    console.error(`Erro ao salvar chave ${key} no localStorage:`, e);
-  }
-};
+export const addDaysToDate = addDays;
 
 export function StudyProvider({ children }) {
+  // 0. Executa migrações na montagem inicial
+  useEffect(() => {
+    runMigrations();
+  }, []);
+
   // 1. Tema Claro / Escuro
   const [darkMode, setDarkMode] = useState(() => {
     try {
-      const saved = localStorage.getItem(`${STORAGE_PREFIX}theme`);
+      const saved = localStorage.getItem(`${CURRENT_STORAGE_PREFIX}theme`);
       if (saved) return saved === 'dark';
       return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     } catch {
@@ -80,10 +46,10 @@ export function StudyProvider({ children }) {
     try {
       if (darkMode) {
         document.documentElement.classList.add('dark');
-        localStorage.setItem(`${STORAGE_PREFIX}theme`, 'dark');
+        localStorage.setItem(`${CURRENT_STORAGE_PREFIX}theme`, 'dark');
       } else {
         document.documentElement.classList.remove('dark');
-        localStorage.setItem(`${STORAGE_PREFIX}theme`, 'light');
+        localStorage.setItem(`${CURRENT_STORAGE_PREFIX}theme`, 'light');
       }
     } catch (e) {
       console.warn('Erro ao salvar tema:', e);
@@ -92,101 +58,146 @@ export function StudyProvider({ children }) {
 
   const toggleDarkMode = () => setDarkMode(prev => !prev);
 
-  // 2. Intervalos de Revisão Espaçada (configuráveis pelo aluno)
-  // Padrão: Dia 0 (inicial), Dia 1 (1ª rev), Dia 3 (2ª rev), Dia 7 (3ª rev), Dia 14 (4ª rev)
-  const [spacedIntervals, setSpacedIntervals] = useState(() => {
-    return loadFromStorage('spaced_intervals', [0, 1, 3, 7, 14]);
-  });
+  // 2. Módulos e Disciplinas Acadêmicas
+  const academic = useAcademic();
+  const {
+    faculdade,
+    setFaculdade,
+    disciplinas,
+    setDisciplinas,
+    addDisciplina,
+    updateDisciplina,
+    deleteDisciplina,
+    modulos,
+    setModulos,
+    addModule,
+    updateModule,
+    deleteModule,
+    setModuleManualStatus
+  } = academic;
 
-  const updateSpacedIntervals = (newIntervals) => {
-    setSpacedIntervals(newIntervals);
-    saveToStorage('spaced_intervals', newIntervals);
+  // 3. Revisão Espaçada (SM-2)
+  const spaced = useSpacedRepetition((itemId, tipo, updated) => {
+    if (tipo === 'modulo') {
+      updateModule(itemId, {
+        status: updated.status,
+        dataUltimaRevisao: updated.lastReviewDate
+      });
+    }
+  });
+  const {
+    spacedReviews,
+    setSpacedReviews,
+    spacedIntervals,
+    updateSpacedIntervals,
+    recordSM2Review,
+    recordSpacedReview,
+    getDueReviews,
+    getOverdueReviews,
+    getDueTodayReviews,
+    getFutureReviews
+  } = spaced;
+
+  // 4. Flashcards
+  const flashcardHook = useFlashcards(recordSM2Review);
+  const {
+    flashcards,
+    setFlashcards,
+    addFlashcard,
+    updateFlashcard,
+    deleteFlashcard,
+    toggleFlashcardFavorite,
+    importFromKahoot,
+    importFromModulo
+  } = flashcardHook;
+
+  // 5. Calendário Acadêmico
+  const calendarHook = useCalendar();
+  const {
+    eventosCalendario,
+    setEventosCalendario,
+    addEvento,
+    updateEvento,
+    deleteEvento,
+    setEventoStatus,
+    getUpcomingEvents,
+    getOverdueEvents
+  } = calendarHook;
+
+  // 6. Horas de Estudo e Produtividade
+  const timerHook = useStudyTimer();
+  const {
+    estudosTempo,
+    registrarSessao,
+    getProdutividadeSemanal
+  } = timerHook;
+
+  // 7. Resumos
+  const [resumos, setResumosState] = useState(() => getItem('resumos', resumosData));
+  const setResumos = (data) => {
+    setResumosState(data);
+    setItem('resumos', data);
+  };
+  const addResumo = (novo) => setResumos([novo, ...resumos]);
+  const updateResumo = (id, fields) => setResumos(resumos.map(r => r.id === id ? { ...r, ...fields } : r));
+  const deleteResumo = (id) => setResumos(resumos.filter(r => r.id !== id));
+
+  // 8. Kahoots
+  const [kahoots, setKahootsState] = useState(() => getItem('kahoots', kahootsData));
+  const setKahoots = (data) => {
+    setKahootsState(data);
+    setItem('kahoots', data);
+  };
+  const addKahoot = (novo) => setKahoots([novo, ...kahoots]);
+  const updateKahoot = (id, fields) => setKahoots(kahoots.map(k => k.id === id ? { ...k, ...fields } : k));
+  const deleteKahoot = (id) => setKahoots(kahoots.filter(k => k.id !== id));
+
+  // 9. Histórico de Tentativas de Kahoots
+  const [attempts, setAttemptsState] = useState(() => getItem('attempts', {}));
+  const setAttempts = (data) => {
+    setAttemptsState(data);
+    setItem('attempts', data);
   };
 
-  // 3. Dados Principais com Persistência Local Real
-  const [faculdade, setFaculdadeState] = useState(() => loadFromStorage('faculdade', faculdadeData));
-  const [disciplinas, setDisciplinasState] = useState(() => loadFromStorage('disciplinas', disciplinasData));
-  const [modulos, setModulosState] = useState(() => loadFromStorage('modulos', modulosData));
-  const [resumos, setResumosState] = useState(() => loadFromStorage('resumos', resumosData));
-  const [kahoots, setKahootsState] = useState(() => loadFromStorage('kahoots', kahootsData));
-  const [notas, setNotasState] = useState(() => loadFromStorage('notas', notasData));
-  const [projetos, setProjetosState] = useState(() => loadFromStorage('projetos', projetosData));
+  // 10. Notas Técnicas
+  const [notas, setNotasState] = useState(() => getItem('notas', notasData));
+  const setNotas = (data) => {
+    setNotasState(data);
+    setItem('notas', data);
+  };
+  const addNote = (novaNota) => setNotas([novaNota, ...notas]);
+  const updateNote = (id, fields) => setNotas(notas.map(n => n.id === id ? { ...n, ...fields } : n));
+  const deleteNote = (id) => setNotas(notas.filter(n => n.id !== id));
 
-  // 4. Histórico de Tentativas de Kahoots:
-  // { [kahootId]: [ { id, data, totalQuestoes, acertos, erros, percentual, dificuldades, observacoes, anteciparRevisao } ] }
-  const [attempts, setAttemptsState] = useState(() => loadFromStorage('attempts', {}));
+  // 11. Projetos (Portfólio)
+  const [projetos, setProjetosState] = useState(() => getItem('projetos', projetosData));
+  const setProjetos = (data) => {
+    setProjetosState(data);
+    setItem('projetos', data);
+  };
+  const addProjeto = (novo) => setProjetos([novo, ...projetos]);
+  const updateProjeto = (id, fields) => setProjetos(projetos.map(p => p.id === id ? { ...p, ...fields } : p));
+  const deleteProjeto = (id) => setProjetos(projetos.filter(p => p.id !== id));
 
-  // 5. Estado de Revisão Espaçada por Item (Módulos, Kahoots, Resumos):
-  // { [itemId]: { id, tipo, stage: 0..4, nextReviewDate, lastReviewDate, status, difficultiesCount, history: [] } }
-  const [spacedReviews, setSpacedReviewsState] = useState(() => loadFromStorage('spaced_reviews', {}));
-
-  // 6. Favoritos (array de IDs)
-  const [favorites, setFavoritesState] = useState(() => loadFromStorage('favorites', []));
-
-  // 7. Anotações Acadêmicas da Faculdade (Datas de provas, eventos)
-  const [faculdadeAnotacoes, setFaculdadeAnotacoesState] = useState(() => loadFromStorage('faculdade_anotacoes', []));
-
-  // Sincronizadores com localStorage
-  const setFaculdade = (data) => { setFaculdadeState(data); saveToStorage('faculdade', data); };
-  const setDisciplinas = (data) => { setDisciplinasState(data); saveToStorage('disciplinas', data); };
-  const setModulos = (data) => { setModulosState(data); saveToStorage('modulos', data); };
-  const setResumos = (data) => { setResumosState(data); saveToStorage('resumos', data); };
-  const setKahoots = (data) => { setKahootsState(data); saveToStorage('kahoots', data); };
-  const setNotas = (data) => { setNotasState(data); saveToStorage('notas', data); };
-  const setProjetos = (data) => { setProjetosState(data); saveToStorage('projetos', data); };
-  const setAttempts = (data) => { setAttemptsState(data); saveToStorage('attempts', data); };
-  const setSpacedReviews = (data) => { setSpacedReviewsState(data); saveToStorage('spaced_reviews', data); };
-  const setFavorites = (data) => { setFavoritesState(data); saveToStorage('favorites', data); };
-  const setFaculdadeAnotacoes = (data) => { setFaculdadeAnotacoesState(data); saveToStorage('faculdade_anotacoes', data); };
-
-  // --- MÉTODOS DE NEGÓCIO ---
-
-  // Favoritar / Desfavoritar
+  // 12. Favoritos & Anotações de Faculdade
+  const [favorites, setFavoritesState] = useState(() => getItem('favorites', []));
+  const setFavorites = (data) => {
+    setFavoritesState(data);
+    setItem('favorites', data);
+  };
   const toggleFavorite = (id) => {
     const updated = favorites.includes(id) ? favorites.filter(item => item !== id) : [...favorites, id];
     setFavorites(updated);
   };
   const isFavorite = (id) => favorites.includes(id);
 
-  // CRUD e Atualizações de Kahoot
-  const updateKahoot = (id, updatedFields) => {
-    const updated = kahoots.map(k => k.id === id ? { ...k, ...updatedFields } : k);
-    setKahoots(updated);
+  const [faculdadeAnotacoes, setFaculdadeAnotacoesState] = useState(() => getItem('faculdade_anotacoes', []));
+  const setFaculdadeAnotacoes = (data) => {
+    setFaculdadeAnotacoesState(data);
+    setItem('faculdade_anotacoes', data);
   };
 
-  const addKahoot = (novoKahoot) => {
-    const updated = [novoKahoot, ...kahoots];
-    setKahoots(updated);
-  };
-
-  const deleteKahoot = (id) => {
-    const updated = kahoots.filter(k => k.id !== id);
-    setKahoots(updated);
-  };
-
-  // CRUD e Atualizações de Módulo
-  const updateModule = (id, updatedFields) => {
-    const updated = modulos.map(m => m.id === id ? { ...m, ...updatedFields } : m);
-    setModulos(updated);
-  };
-
-  const addModule = (novoModulo) => {
-    const updated = [...modulos, novoModulo];
-    setModulos(updated);
-  };
-
-  // CRUD de Notas Técnicas
-  const addNote = (novaNota) => {
-    const updated = [novaNota, ...notas];
-    setNotas(updated);
-  };
-
-  const deleteNote = (id) => {
-    const updated = notas.filter(n => n.id !== id);
-    setNotas(updated);
-  };
-
-  // --- SISTEMA DE TENTATIVAS DE KAHOOT ---
+  // --- REGISTRAR TENTATIVA DE KAHOOT (COM SM-2 ADAPTATIVO) ---
   const saveKahootAttempt = (kahootId, attemptData) => {
     const today = attemptData.data || getTodayString();
     const total = Number(attemptData.totalQuestoes) || 1;
@@ -211,162 +222,45 @@ export function StudyProvider({ children }) {
     const novosAttempts = { ...attempts, [kahootId]: novoHistorico };
     setAttempts(novosAttempts);
 
-    // Atualiza a repetição espaçada do Kahoot e do Módulo associado
-    const kahootAtual = kahoots.find(k => k.id === kahootId);
-    const reviewInfo = spacedReviews[kahootId] || {
-      id: kahootId,
-      tipo: 'kahoot',
-      stage: 0,
-      nextReviewDate: today,
-      status: 'nao_iniciado',
-      difficultiesCount: 0,
-      history: []
-    };
-
-    let nextStage = reviewInfo.stage;
-    let nextDate = today;
-    let newStatus = 'estudado';
-    let difficultiesCount = reviewInfo.difficultiesCount || 0;
-
-    // Se teve dificuldades ou percentual < 70%: antecipa para amanhã (+1 dia)
+    // Mapeamento de percentual para nota SM-2:
+    // < 70% ou antecipar: AGAIN (1)
+    // 70% - 84%: GOOD (4)
+    // >= 85%: EASY (5)
+    let sm2Grade = SM2_GRADES.GOOD;
     if (novaTentativa.anteciparRevisao || percentual < 70) {
-      nextDate = addDaysToDate(today, 1);
-      newStatus = 'revisao_pendente';
-      difficultiesCount += 1;
-    } else {
-      // Avança estágio
-      nextStage = Math.min((reviewInfo.stage || 0) + 1, spacedIntervals.length - 1);
-      const daysToAdd = spacedIntervals[nextStage] || 1;
-      nextDate = addDaysToDate(today, daysToAdd);
-
-      if (nextStage >= spacedIntervals.length - 1 && percentual >= 85) {
-        newStatus = 'dominado';
-      } else {
-        newStatus = 'em_revisao';
-      }
+      sm2Grade = SM2_GRADES.AGAIN;
+    } else if (percentual >= 85) {
+      sm2Grade = SM2_GRADES.EASY;
     }
 
-    const updatedReviewInfo = {
-      ...reviewInfo,
-      id: kahootId,
-      tipo: 'kahoot',
+    const kahootAtual = kahoots.find(k => k.id === kahootId);
+    recordSM2Review(kahootId, 'kahoot', sm2Grade, {
+      titulo: kahootAtual?.titulo,
       disciplinaId: kahootAtual?.disciplinaId,
       moduloId: kahootAtual?.moduloId,
-      titulo: kahootAtual?.titulo,
-      stage: nextStage,
-      lastReviewDate: today,
-      nextReviewDate: nextDate,
-      lastScore: percentual,
-      status: newStatus,
-      difficultiesCount,
-      history: [
-        { data: today, percentual, stage: nextStage, observacoes: novaTentativa.observacoes },
-        ...(reviewInfo.history || [])
-      ]
-    };
+      notes: novaTentativa.observacoes
+    });
 
-    const novosReviews = { ...spacedReviews, [kahootId]: updatedReviewInfo };
-
-    // Se o Kahoot tem módulo associado, marca também o módulo como em_estudo ou estudado
     if (kahootAtual?.moduloId) {
       updateModule(kahootAtual.moduloId, {
-        status: newStatus === 'dominado' ? 'dominado' : 'estudado',
+        status: percentual >= 85 ? 'dominado' : 'estudado',
         dataUltimaRevisao: today
       });
     }
 
-    setSpacedReviews(novosReviews);
+    // Registra sessão de estudo automaticamente (estudo prático ~ 10 a 20 min)
+    registrarSessao(15, {
+      disciplinaId: kahootAtual?.disciplinaId,
+      moduloId: kahootAtual?.moduloId,
+      tipo: 'kahoot',
+      notas: `Tentativa Kahoot: ${acertos}/${total} acertos (${percentual}%)`
+    });
+
     return novaTentativa;
   };
 
-  // Concluir ou agendar revisão de qualquer item (Módulo, Resumo ou Kahoot)
-  const recordSpacedReview = (itemId, tipo, { status, nextDate, notes, stageIncrement = true }) => {
-    const today = getTodayString();
-    const current = spacedReviews[itemId] || {
-      id: itemId,
-      tipo,
-      stage: 0,
-      nextReviewDate: today,
-      status: 'nao_iniciado',
-      history: []
-    };
-
-    let nextStage = current.stage;
-    if (stageIncrement) {
-      nextStage = Math.min(current.stage + 1, spacedIntervals.length - 1);
-    }
-
-    const calculatedNextDate = nextDate || addDaysToDate(today, spacedIntervals[nextStage] || 1);
-
-    const updated = {
-      ...current,
-      id: itemId,
-      tipo,
-      stage: nextStage,
-      lastReviewDate: today,
-      nextReviewDate: calculatedNextDate,
-      status: status || (nextStage >= spacedIntervals.length - 1 ? 'dominado' : 'estudado'),
-      history: [
-        { data: today, stage: nextStage, notes: notes || '' },
-        ...(current.history || [])
-      ]
-    };
-
-    const updatedReviews = { ...spacedReviews, [itemId]: updated };
-    setSpacedReviews(updatedReviews);
-
-    // Atualiza status no módulo ou resumo caso seja o caso
-    if (tipo === 'modulo') {
-      updateModule(itemId, {
-        status: updated.status,
-        dataUltimaRevisao: today
-      });
-    }
-  };
-
-  // Alterar status manual de um módulo
-  const setModuleManualStatus = (moduleId, newStatus) => {
-    updateModule(moduleId, { status: newStatus });
-    const today = getTodayString();
-    const current = spacedReviews[moduleId] || {
-      id: moduleId,
-      tipo: 'modulo',
-      stage: 0,
-      nextReviewDate: today,
-      status: newStatus
-    };
-    setSpacedReviews({
-      ...spacedReviews,
-      [moduleId]: {
-        ...current,
-        status: newStatus,
-        lastReviewDate: today,
-        nextReviewDate: newStatus === 'estudado' ? addDaysToDate(today, spacedIntervals[1] || 1) : current.nextReviewDate
-      }
-    });
-  };
-
-  // --- SELETORES DINÂMICOS PARA O DASHBOARD E REVISÕES DE HOJE ---
-  const todayStr = getTodayString();
-
-  // Revisões de Hoje (programadas para hoje ou atrasadas)
-  const getDueReviews = () => {
-    const items = [];
-    Object.values(spacedReviews).forEach(rev => {
-      if (rev.status === 'dominado') return;
-      if (rev.nextReviewDate && rev.nextReviewDate <= todayStr) {
-        items.push(rev);
-      }
-    });
-    return items.sort((a, b) => a.nextReviewDate.localeCompare(b.nextReviewDate));
-  };
-
-  const getOverdueReviews = () => {
-    return getDueReviews().filter(item => item.nextReviewDate < todayStr);
-  };
-
-  const getDueTodayReviews = () => {
-    return getDueReviews().filter(item => item.nextReviewDate === todayStr);
+  const getKahootAttempts = (kahootId) => {
+    return attempts[kahootId] || [];
   };
 
   // Módulos em andamento
@@ -374,12 +268,12 @@ export function StudyProvider({ children }) {
     return modulos.filter(m => m.status === 'em_estudo' || m.status === 'estudando');
   };
 
-  // Kahoots que nunca foram tentados
+  // Kahoots sem tentativa
   const getKahootsPendingFirstAttempt = () => {
     return kahoots.filter(k => !attempts[k.id] || attempts[k.id].length === 0);
   };
 
-  // Conteúdos com dificuldades (tentativas < 70% ou marcadas como dificuldade)
+  // Conteúdos com dificuldades
   const getItemsWithDifficulties = () => {
     const items = [];
     kahoots.forEach(k => {
@@ -398,16 +292,67 @@ export function StudyProvider({ children }) {
     return items;
   };
 
-  // Obter tentativas de um Kahoot específico
-  const getKahootAttempts = (kahootId) => {
-    return attempts[kahootId] || [];
+  // --- RECOMENDAÇÕES INTELIGENTES BASEADAS EM DESEMPENHO REAL ---
+  const getStudyRecommendations = () => {
+    const recs = [];
+
+    // 1. Revisões atrasadas têm prioridade absoluta
+    const atrasadas = getOverdueReviews();
+    if (atrasadas.length > 0) {
+      recs.push({
+        id: 'rec_overdue',
+        tipo: 'urgente',
+        titulo: `${atrasadas.length} revisão(ões) atrasada(s)`,
+        descricao: 'Revise os conteúdos pendentes para evitar que a curva do esquecimento apague o conteúdo aprendido.',
+        link: '/revisoes'
+      });
+    }
+
+    // 2. Kahoots com pontuação baixa (< 70%)
+    const comDificuldade = getItemsWithDifficulties();
+    if (comDificuldade.length > 0) {
+      const pior = comDificuldade[0];
+      recs.push({
+        id: `rec_diff_${pior.kahoot.id}`,
+        tipo: 'reforco',
+        titulo: `Reforçar: ${pior.kahoot.titulo}`,
+        descricao: `Último desempenho de ${pior.lastAttempt.percentual}%. Releia os conceitos e refaça o quiz.`,
+        link: `/kahoots/${pior.kahoot.id}`
+      });
+    }
+
+    // 3. Próximas provas e prazos nos próximos 7 dias
+    const proximos = getUpcomingEvents(3);
+    proximos.forEach(evt => {
+      recs.push({
+        id: `rec_evt_${evt.id}`,
+        tipo: 'prazo',
+        titulo: `Atenção ao prazo: ${evt.titulo}`,
+        descricao: `Agendado para ${evt.data}. Status atual: ${evt.status}.`,
+        link: '/faculdade'
+      });
+    });
+
+    // 4. Módulos não iniciados
+    const naoIniciados = modulos.filter(m => !m.status || m.status === 'nao_iniciado');
+    if (naoIniciados.length > 0 && recs.length < 4) {
+      const proximo = naoIniciados[0];
+      recs.push({
+        id: `rec_mod_${proximo.id}`,
+        tipo: 'novo',
+        titulo: `Novo conteúdo: ${proximo.titulo}`,
+        descricao: 'Inicie a leitura teórica deste módulo para avançar na grade do semestre.',
+        link: `/modulos/${proximo.id}`
+      });
+    }
+
+    return recs;
   };
 
   // --- BACKUP E RESTAURAÇÃO ---
   const exportFullBackup = () => {
-    const backupData = {
-      version: '2.0',
-      exportedAt: new Date().toISOString(),
+    createAutoSnapshot('Backup Manual');
+    const state = {
       faculdade,
       disciplinas,
       modulos,
@@ -419,61 +364,78 @@ export function StudyProvider({ children }) {
       spacedReviews,
       spacedIntervals,
       favorites,
-      faculdadeAnotacoes
+      faculdadeAnotacoes,
+      flashcards,
+      eventosCalendario,
+      estudosTempo
     };
-    return JSON.stringify(backupData, null, 2);
+    return JSON.stringify(buildBackupPayload(state), null, 2);
   };
 
   const importFullBackup = (jsonString) => {
-    try {
-      const parsed = JSON.parse(jsonString);
-      if (!parsed || typeof parsed !== 'object') {
-        throw new Error('Arquivo JSON inválido.');
-      }
-
-      // Validação mínima de estrutura
-      if (parsed.disciplinas && Array.isArray(parsed.disciplinas)) setDisciplinas(parsed.disciplinas);
-      if (parsed.modulos && Array.isArray(parsed.modulos)) setModulos(parsed.modulos);
-      if (parsed.resumos && Array.isArray(parsed.resumos)) setResumos(parsed.resumos);
-      if (parsed.kahoots && Array.isArray(parsed.kahoots)) setKahoots(parsed.kahoots);
-      if (parsed.notas && Array.isArray(parsed.notas)) setNotas(parsed.notas);
-      if (parsed.projetos && Array.isArray(parsed.projetos)) setProjetos(parsed.projetos);
-      if (parsed.faculdade) setFaculdade(parsed.faculdade);
-      if (parsed.attempts) setAttempts(parsed.attempts);
-      if (parsed.spacedReviews) setSpacedReviews(parsed.spacedReviews);
-      if (parsed.spacedIntervals) setSpacedIntervals(parsed.spacedIntervals);
-      if (parsed.favorites) setFavorites(parsed.favorites);
-      if (parsed.faculdadeAnotacoes) setFaculdadeAnotacoes(parsed.faculdadeAnotacoes);
-
-      return {
-        sucesso: true,
-        resumo: {
-          disciplinas: parsed.disciplinas?.length || 0,
-          modulos: parsed.modulos?.length || 0,
-          kahoots: parsed.kahoots?.length || 0,
-          tentativas: Object.keys(parsed.attempts || {}).length,
-          notas: parsed.notas?.length || 0
-        }
-      };
-    } catch (err) {
-      return { sucesso: false, erro: err.message };
+    const res = parseAndValidateBackup(jsonString);
+    if (!res.sucesso) {
+      return { sucesso: false, erro: res.erro };
     }
+
+    const { data, resumo } = res;
+    if (data.disciplinas) setDisciplinas(data.disciplinas);
+    if (data.modulos) setModulos(data.modulos);
+    if (data.resumos) setResumos(data.resumos);
+    if (data.kahoots) setKahoots(data.kahoots);
+    if (data.notas) setNotas(data.notas);
+    if (data.projetos) setProjetos(data.projetos);
+    if (data.faculdade) setFaculdade(data.faculdade);
+    if (data.attempts) setAttempts(data.attempts);
+    if (data.spacedReviews) setSpacedReviews(data.spacedReviews);
+    if (data.spacedIntervals) updateSpacedIntervals(data.spacedIntervals);
+    if (data.favorites) setFavorites(data.favorites);
+    if (data.faculdadeAnotacoes) setFaculdadeAnotacoes(data.faculdadeAnotacoes);
+    if (data.flashcards) setFlashcards(data.flashcards);
+    if (data.eventosCalendario) setEventosCalendario(data.eventosCalendario);
+    if (data.estudosTempo) timerHook.setEstudosTempo(data.estudosTempo);
+
+    return { sucesso: true, resumo };
   };
 
   const resetAllDataToDefaults = () => {
-    localStorage.clear();
-    setFaculdadeState(faculdadeData);
-    setDisciplinasState(disciplinasData);
-    setModulosState(modulosData);
-    setResumosState(resumosData);
-    setKahootsState(kahootsData);
-    setNotasState(notasData);
-    setProjetosState(projetosData);
-    setAttemptsState({});
-    setSpacedReviewsState({});
-    setFavoritesState([]);
-    setFaculdadeAnotacoesState([]);
-    setSpacedIntervals([0, 1, 3, 7, 14]);
+    createAutoSnapshot('Antes de Resetar');
+    clearAllStorage();
+    setFaculdade(faculdadeData);
+    setDisciplinas(disciplinasData);
+    setModulos(modulosData);
+    setResumos(resumosData);
+    setKahoots(kahootsData);
+    setNotas(notasData);
+    setProjetos(projetosData);
+    setAttempts({});
+    setSpacedReviews({});
+    setFavorites([]);
+    setFaculdadeAnotacoes([]);
+    setFlashcards([]);
+    setEventosCalendario([]);
+    updateSpacedIntervals([0, 1, 3, 7, 14]);
+  };
+
+  // Restauração de snapshots do histórico
+  const getSnapshots = () => getSnapshotHistory();
+  const restoreSnapshot = (snapshotId) => {
+    const list = getSnapshotHistory();
+    const snap = list.find(s => s.id === snapshotId);
+    if (!snap || !snap.data) return false;
+
+    if (snap.data.disciplinas) setDisciplinas(snap.data.disciplinas);
+    if (snap.data.modulos) setModulos(snap.data.modulos);
+    if (snap.data.resumos) setResumos(snap.data.resumos);
+    if (snap.data.kahoots) setKahoots(snap.data.kahoots);
+    if (snap.data.attempts) setAttempts(snap.data.attempts);
+    if (snap.data.spacedReviews) setSpacedReviews(snap.data.spacedReviews);
+    if (snap.data.flashcards) setFlashcards(snap.data.flashcards);
+    if (snap.data.eventosCalendario) setEventosCalendario(snap.data.eventosCalendario);
+    if (snap.data.notas) setNotas(snap.data.notas);
+    if (snap.data.projetos) setProjetos(snap.data.projetos);
+    if (snap.data.favorites) setFavorites(snap.data.favorites);
+    return true;
   };
 
   // Controle de busca global (Ctrl + K)
@@ -496,56 +458,96 @@ export function StudyProvider({ children }) {
     <StudyContext.Provider value={{
       darkMode,
       toggleDarkMode,
+      // Acadêmico
       faculdade,
       setFaculdade,
       disciplinas,
       setDisciplinas,
+      addDisciplina,
+      updateDisciplina,
+      deleteDisciplina,
       modulos,
       setModulos,
+      addModule,
+      updateModule,
+      deleteModule,
+      setModuleManualStatus,
+      // Resumos
       resumos,
       setResumos,
+      addResumo,
+      updateResumo,
+      deleteResumo,
+      // Kahoots
       kahoots,
       setKahoots,
-      notas,
-      setNotas,
-      projetos,
-      setProjetos,
-      // Kahoot CRUD & Tentativas
-      updateKahoot,
       addKahoot,
+      updateKahoot,
       deleteKahoot,
       saveKahootAttempt,
       getKahootAttempts,
       attempts,
-      // Módulo CRUD & Status
-      updateModule,
-      addModule,
-      setModuleManualStatus,
-      // Notas CRUD
+      // Notas
+      notas,
+      setNotas,
       addNote,
+      updateNote,
       deleteNote,
-      // Revisão Espaçada
+      // Projetos
+      projetos,
+      setProjetos,
+      addProjeto,
+      updateProjeto,
+      deleteProjeto,
+      // Revisão Espaçada SM-2
       spacedReviews,
       spacedIntervals,
       updateSpacedIntervals,
+      recordSM2Review,
       recordSpacedReview,
       getDueReviews,
       getOverdueReviews,
       getDueTodayReviews,
+      getFutureReviews,
       getModulesInProgress,
       getKahootsPendingFirstAttempt,
       getItemsWithDifficulties,
+      getStudyRecommendations,
+      // Flashcards
+      flashcards,
+      setFlashcards,
+      addFlashcard,
+      updateFlashcard,
+      deleteFlashcard,
+      toggleFlashcardFavorite,
+      importFromKahoot,
+      importFromModulo,
+      // Calendário Acadêmico
+      eventosCalendario,
+      setEventosCalendario,
+      addEvento,
+      updateEvento,
+      deleteEvento,
+      setEventoStatus,
+      getUpcomingEvents,
+      getOverdueEvents,
+      // Horas e Produtividade
+      estudosTempo,
+      registrarSessao,
+      getProdutividadeSemanal,
       // Favoritos & Lembretes
       favorites,
       toggleFavorite,
       isFavorite,
       faculdadeAnotacoes,
       setFaculdadeAnotacoes,
-      // Backup
+      // Backup & Snapshots
       exportFullBackup,
       importFullBackup,
       resetAllDataToDefaults,
-      // Busca
+      getSnapshots,
+      restoreSnapshot,
+      // Busca Global
       isSearchOpen,
       openSearch,
       closeSearch

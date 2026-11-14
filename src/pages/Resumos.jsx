@@ -16,7 +16,7 @@ import Badge from '../components/common/Badge';
 import EmptyState from '../components/common/EmptyState';
 
 export default function Resumos() {
-  const { resumos, disciplinas, favorites, isFavorite, toggleFavorite, reviews } = useStudy();
+  const { resumos, disciplinas, favorites, isFavorite, toggleFavorite, spacedReviews } = useStudy();
 
   const [busca, setBusca] = useState('');
   const [filtroDisciplina, setFiltroDisciplina] = useState('todas');
@@ -27,17 +27,19 @@ export default function Resumos() {
   const resumosFiltrados = resumos.filter(r => {
     const q = busca.toLowerCase();
     const matchBusca = r.titulo.toLowerCase().includes(q) ||
-                       r.assunto.toLowerCase().includes(q) ||
+                       r.assunto?.toLowerCase().includes(q) ||
                        r.tags?.some(t => t.toLowerCase().includes(q));
 
     const matchDisc = filtroDisciplina === 'todas' || r.disciplinaId === filtroDisciplina;
     const matchFav = !apenasFavoritos || isFavorite(r.id);
     
     let matchRev = true;
+    const rev = spacedReviews?.[r.id];
+    const isRevisado = rev && (rev.status === 'estudado' || rev.status === 'dominado' || rev.status === 'em_revisao');
     if (apenasRevisados === 'revisados') {
-      matchRev = !!reviews[r.id]?.revisado;
+      matchRev = !!isRevisado;
     } else if (apenasRevisados === 'pendentes') {
-      matchRev = !reviews[r.id]?.revisado;
+      matchRev = !isRevisado;
     }
 
     return matchBusca && matchDisc && matchFav && matchRev;
@@ -126,7 +128,8 @@ export default function Resumos() {
           {resumosFiltrados.map((resumo) => {
             const disc = disciplinas.find(d => d.id === resumo.disciplinaId);
             const favorito = isFavorite(resumo.id);
-            const rev = reviews[resumo.id];
+            const rev = spacedReviews?.[resumo.id];
+            const isRevisado = rev && (rev.status === 'estudado' || rev.status === 'dominado' || rev.status === 'em_revisao');
 
             return (
               <div
@@ -176,7 +179,7 @@ export default function Resumos() {
                       <Clock className="w-3.5 h-3.5" />
                       {resumo.tempoLeituraMin} min
                     </span>
-                    {rev?.revisado && (
+                    {isRevisado && (
                       <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Revisado

@@ -10,7 +10,9 @@ import {
   FileCode,
   Layers,
   X,
-  ArrowRight
+  ArrowRight,
+  BrainCircuit,
+  Calendar
 } from 'lucide-react';
 
 export default function SearchModal() {
@@ -22,7 +24,9 @@ export default function SearchModal() {
     resumos,
     kahoots,
     projetos,
-    notas
+    notas,
+    flashcards,
+    eventosCalendario
   } = useStudy();
 
   const [query, setQuery] = useState('');
@@ -136,8 +140,36 @@ export default function SearchModal() {
       }
     });
 
+    // 7. Flashcards
+    (flashcards || []).forEach(f => {
+      if (f.frente.toLowerCase().includes(q) || f.verso.toLowerCase().includes(q) || f.assunto?.toLowerCase().includes(q)) {
+        matches.push({
+          tipo: 'Flashcard',
+          icon: BrainCircuit,
+          id: f.id,
+          titulo: f.frente,
+          subtitulo: f.verso,
+          link: `/flashcards`
+        });
+      }
+    });
+
+    // 8. Eventos de Calendário
+    (eventosCalendario || []).forEach(e => {
+      if (e.titulo.toLowerCase().includes(q) || e.descricao?.toLowerCase().includes(q)) {
+        matches.push({
+          tipo: 'Calendário / Prova',
+          icon: Calendar,
+          id: e.id,
+          titulo: e.titulo,
+          subtitulo: `${e.tipo.toUpperCase()} • ${e.data}`,
+          link: `/calendario`
+        });
+      }
+    });
+
     setResults(matches);
-  }, [query, disciplinas, modulos, resumos, kahoots, projetos, notas]);
+  }, [query, disciplinas, modulos, resumos, kahoots, projetos, notas, flashcards, eventosCalendario]);
 
   if (!isSearchOpen) return null;
 

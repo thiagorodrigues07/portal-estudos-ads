@@ -109,12 +109,18 @@ export default function Kahoots() {
           throw new Error('Nenhuma questão válida encontrada no JSON informado.');
         }
 
-        const previa = items.map((it, idx) => ({
-          id: `q_pre_${idx + 1}`,
-          pergunta: it.pergunta || it.question || 'Sem pergunta',
-          respostaCorreta: it.respostaCorreta || it.answer || it.correctAnswer || 'Sem resposta',
-          explicacao: it.explicacao || it.explanation || ''
-        }));
+        const todasQuestoesExistentes = kahoots.flatMap(k => k.questoes || []).map(q => q.pergunta?.toLowerCase().trim());
+        const previa = items.map((it, idx) => {
+          const perg = (it.pergunta || it.question || 'Sem pergunta').trim();
+          const isDuplicada = todasQuestoesExistentes.includes(perg.toLowerCase());
+          return {
+            id: `q_pre_${idx + 1}`,
+            pergunta: perg,
+            respostaCorreta: it.respostaCorreta || it.answer || it.correctAnswer || 'Sem resposta',
+            explicacao: it.explicacao || it.explanation || '',
+            isDuplicada
+          };
+        });
 
         setQuestoesPrevia(previa);
         setEtapaImportacao('preview');
@@ -137,19 +143,22 @@ export default function Kahoots() {
       const idxResposta = cabecalhos.findIndex(h => h.includes('resposta') || h.includes('answer') || h.includes('corret'));
       const idxExplicacao = cabecalhos.findIndex(h => h.includes('explica') || h.includes('justificativa') || h.includes('exp'));
 
+      const todasQuestoesExistentes = kahoots.flatMap(k => k.questoes || []).map(q => q.pergunta?.toLowerCase().trim());
       const parsedQuestoes = [];
       for (let i = 1; i < linhas.length; i++) {
         const partes = linhas[i].split(sep).map(p => p.trim());
-        const perg = idxPergunta !== -1 ? partes[idxPergunta] : partes[0];
-        const resp = idxResposta !== -1 ? partes[idxResposta] : partes[1];
-        const expl = idxExplicacao !== -1 ? partes[idxExplicacao] : partes[2] || '';
+        const perg = (idxPergunta !== -1 ? partes[idxPergunta] : partes[0])?.replace(/^"|"$/g, '').trim();
+        const resp = (idxResposta !== -1 ? partes[idxResposta] : partes[1])?.replace(/^"|"$/g, '').trim();
+        const expl = (idxExplicacao !== -1 ? partes[idxExplicacao] : partes[2] || '')?.replace(/^"|"$/g, '').trim();
 
         if (perg && resp) {
+          const isDuplicada = todasQuestoesExistentes.includes(perg.toLowerCase());
           parsedQuestoes.push({
             id: `q_csv_${Date.now()}_${i}`,
-            pergunta: perg.replace(/^"|"$/g, ''),
-            respostaCorreta: resp.replace(/^"|"$/g, ''),
-            explicacao: expl.replace(/^"|"$/g, '')
+            pergunta: perg,
+            respostaCorreta: resp,
+            explicacao: expl,
+            isDuplicada
           });
         }
       }
@@ -352,13 +361,20 @@ export default function Kahoots() {
                   </div>
                 </div>
 
-                <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
                   <Link
                     to={`/kahoots/${kahoot.id}`}
-                    className="w-full py-2 px-3 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-600 hover:text-white dark:hover:bg-amber-600 text-amber-800 dark:text-amber-200 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2 px-3 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-600 hover:text-white dark:hover:bg-amber-600 text-amber-800 dark:text-amber-200 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
                   >
-                    <span>Estudar & Abrir Kahoot</span>
+                    <span>Ficha Teórica</span>
                     <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                  <Link
+                    to={`/kahoots/${kahoot.id}`}
+                    className="py-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1 shadow-2xs"
+                    title="Responder no Simulado"
+                  >
+                    <span>Simulado</span>
                   </Link>
                 </div>
               </div>
@@ -551,9 +567,18 @@ export default function Kahoots() {
 
                 <div className="max-h-64 overflow-y-auto space-y-2 border border-slate-200 dark:border-slate-800 rounded-xl p-3 bg-slate-50/50 dark:bg-slate-800/40">
                   {questoesPrevia.map((q, idx) => (
-                    <div key={idx} className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs space-y-1">
-                      <div className="font-semibold text-slate-800 dark:text-slate-100">
-                        {idx + 1}. {q.pergunta}
+                    <div key={idx} className={`p-2.5 rounded-lg bg-white dark:bg-slate-900 border text-xs space-y-1 ${
+                      q.isDuplicada ? 'border-amber-400 dark:border-amber-600' : 'border-slate-200/80 dark:border-slate-800'
+                    }`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="font-semibold text-slate-800 dark:text-slate-100">
+                          {idx + 1}. {q.pergunta}
+                        </div>
+                        {q.isDuplicada && (
+                          <Badge variant="warning" size="xs">
+                            Questão já existente
+                          </Badge>
+                        )}
                       </div>
                       <div className="text-emerald-600 dark:text-emerald-400 font-medium">
                         ✓ {q.respostaCorreta}

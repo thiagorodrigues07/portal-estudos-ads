@@ -26,8 +26,11 @@ jobs:
         with:
           node-version: 20
 
-      - name: Instalar Dependências
-        run: npm install
+      - name: Instalar Dependências Limpas
+        run: npm ci
+
+      - name: Executar Testes Automatizados e Integridade de Dados
+        run: npm test
 
       - name: Gerar Build de Produção
         run: |

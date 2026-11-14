@@ -11,15 +11,25 @@ import {
   Layers,
   FileText,
   HelpCircle,
-  FolderGit2
+  FolderGit2,
+  BrainCircuit,
+  Save,
+  Sparkles
 } from 'lucide-react';
 import CodeBlock from '../components/common/CodeBlock';
 
 export default function GerenciadorConteudo() {
-  const { disciplinas } = useStudy();
+  const {
+    disciplinas,
+    addDisciplina,
+    addModule,
+    addKahoot,
+    addFlashcard
+  } = useStudy();
 
   const [tipoConteudo, setTipoConteudo] = useState('disciplina');
   const [copiado, setCopiado] = useState(false);
+  const [salvoDiretoFeedback, setSalvoDiretoFeedback] = useState('');
 
   // Estados dos formulários:
   // 1. Disciplina
@@ -44,6 +54,11 @@ export default function GerenciadorConteudo() {
   const [pergunta, setPergunta] = useState('');
   const [resposta, setResposta] = useState('');
   const [explicacao, setExplicacao] = useState('');
+
+  // 4. Flashcard
+  const [fcFrente, setFcFrente] = useState('');
+  const [fcVerso, setFcVerso] = useState('');
+  const [fcDiscId, setFcDiscId] = useState(disciplinas[0]?.id || 'prog-computadores');
 
   // Gera o JSON dinâmico baseado no tipo selecionado
   const gerarJSON = () => {
@@ -104,12 +119,58 @@ export default function GerenciadorConteudo() {
           ] : [],
           anotacoesPessoais: ''
         };
+      case 'flashcard':
+        return {
+          id: `fc_${Date.now()}`,
+          frente: fcFrente.trim() || 'Pergunta do flashcard',
+          verso: fcVerso.trim() || 'Resposta do flashcard',
+          disciplinaId: fcDiscId,
+          tags: ['Geral'],
+          dataCriacao: new Date().toISOString().split('T')[0]
+        };
       default:
         return {};
     }
   };
 
-  const jsonFormatado = JSON.stringify(gerarJSON(), null, 2);
+  const jsonObjeto = gerarJSON();
+  const jsonFormatado = JSON.stringify(jsonObjeto, null, 2);
+
+  const handleSalvarDireto = () => {
+    switch (tipoConteudo) {
+      case 'disciplina':
+        if (!discNome.trim()) return alert('Informe o nome da disciplina.');
+        addDisciplina(jsonObjeto);
+        setDiscNome('');
+        setDiscId('');
+        setDiscDesc('');
+        break;
+      case 'modulo':
+        if (!modTitulo.trim()) return alert('Informe o título do módulo.');
+        addModule(jsonObjeto);
+        setModTitulo('');
+        setModId('');
+        setModDesc('');
+        break;
+      case 'kahoot':
+        if (!kahootTitulo.trim()) return alert('Informe o título do Kahoot.');
+        addKahoot(jsonObjeto);
+        setKahootTitulo('');
+        setKahootId('');
+        break;
+      case 'flashcard':
+        if (!fcFrente.trim() || !fcVerso.trim()) return alert('Informe a frente e verso do flashcard.');
+        addFlashcard(jsonObjeto);
+        setFcFrente('');
+        setFcVerso('');
+        break;
+      default:
+        break;
+    }
+
+    setSalvoDiretoFeedback(`Item adicionado com sucesso ao seu portal local!`);
+    setTimeout(() => setSalvoDiretoFeedback(''), 3000);
+  };
 
   const handleCopiar = async () => {
     try {
@@ -132,33 +193,27 @@ export default function GerenciadorConteudo() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-5xl">
+    <div className="space-y-6 animate-fade-in max-w-5xl pb-16">
       {/* Cabeçalho */}
       <div className="border-b border-slate-200/80 dark:border-slate-800 pb-5">
         <div className="flex items-center gap-2 text-sky-600 dark:text-sky-400 text-xs font-semibold uppercase tracking-wider mb-1">
           <PlusCircle className="w-4 h-4" />
-          <span>Manutenção Desacoplada</span>
+          <span>Cadastrador e Exportador de Conteúdo</span>
         </div>
         <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-          Gerenciador e Exportador de Conteúdo (JSON)
+          Gerenciador de Conteúdo (Local & JSON)
         </h2>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Preencha os campos abaixo para gerar novos registros prontos e compatíveis com a arquitetura do projeto.
+          Cadastre novos registros diretamente na plataforma ou gere arquivos JSON formatados para commitar no repositório.
         </p>
       </div>
 
-      {/* Aviso de Arquitetura Estática Transparente */}
-      <div className="p-4 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 flex items-start gap-3">
-        <AlertCircle className="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0 mt-0.5" />
-        <div className="text-xs text-sky-900 dark:text-sky-200 leading-relaxed space-y-1">
-          <p>
-            <strong>Como o conteúdo é salvo no GitHub Pages?</strong> Como o GitHub Pages é uma hospedagem puramente estática (sem banco de dados no servidor), o site publicado não pode gravar alterações diretamente no repositório.
-          </p>
-          <p>
-            Para adicionar novos conteúdos de forma definitiva à sua graduação, utilize o formulário abaixo, copie o JSON gerado e cole no arquivo correspondente dentro da pasta <code className="bg-white/80 dark:bg-slate-800 px-1 py-0.5 rounded font-mono">src/data/</code> antes do próximo <code className="bg-white/80 dark:bg-slate-800 px-1 py-0.5 rounded font-mono">git push</code>.
-          </p>
+      {salvoDiretoFeedback && (
+        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-bold flex items-center gap-2 animate-fade-in">
+          <Check className="w-4 h-4 text-emerald-600" />
+          <span>{salvoDiretoFeedback}</span>
         </div>
-      </div>
+      )}
 
       {/* Seletor de Tipo de Conteúdo */}
       <div className="flex flex-wrap gap-2">
@@ -197,15 +252,36 @@ export default function GerenciadorConteudo() {
           <HelpCircle className="w-4 h-4" />
           <span>Novo Kahoot</span>
         </button>
+
+        <button
+          onClick={() => setTipoConteudo('flashcard')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+            tipoConteudo === 'flashcard'
+              ? 'bg-purple-600 text-white shadow-xs'
+              : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
+          }`}
+        >
+          <BrainCircuit className="w-4 h-4" />
+          <span>Novo Flashcard</span>
+        </button>
       </div>
 
       {/* Formulário & Preview Lado a Lado */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Formulário Interativo */}
         <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs space-y-4">
-          <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
-            Preencha os Campos do Registro
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+              Preencha os Campos do Registro
+            </h3>
+            <button
+              onClick={handleSalvarDireto}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-xs cursor-pointer"
+            >
+              <Save className="w-3.5 h-3.5" />
+              <span>Salvar na Plataforma</span>
+            </button>
+          </div>
 
           {tipoConteudo === 'disciplina' && (
             <div className="space-y-3">
@@ -329,7 +405,7 @@ export default function GerenciadorConteudo() {
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Link do Kahoot (para responder)
+                  Link do Kahoot Oficial
                 </label>
                 <input
                   type="url"
@@ -342,28 +418,66 @@ export default function GerenciadorConteudo() {
 
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                  Adicionar Questão Modelo:
+                  Questão Modelo:
                 </span>
                 <input
                   type="text"
                   value={pergunta}
                   onChange={(e) => setPergunta(e.target.value)}
                   placeholder="Pergunta do quiz..."
-                  className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 outline-none focus:border-amber-500"
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 outline-none"
                 />
                 <input
                   type="text"
                   value={resposta}
                   onChange={(e) => setResposta(e.target.value)}
                   placeholder="Resposta correta..."
-                  className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 outline-none focus:border-amber-500"
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 outline-none"
                 />
-                <input
-                  type="text"
-                  value={explicacao}
-                  onChange={(e) => setExplicacao(e.target.value)}
-                  placeholder="Explicação da resposta..."
-                  className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 outline-none focus:border-amber-500"
+              </div>
+            </div>
+          )}
+
+          {tipoConteudo === 'flashcard' && (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  Disciplina
+                </label>
+                <select
+                  value={fcDiscId}
+                  onChange={(e) => setFcDiscId(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none"
+                >
+                  {disciplinas.map(d => (
+                    <option key={d.id} value={d.id}>{d.nome}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  Frente do Flashcard (Pergunta / Termo)
+                </label>
+                <textarea
+                  value={fcFrente}
+                  onChange={(e) => setFcFrente(e.target.value)}
+                  rows={2}
+                  placeholder="Ex: O que é a Heurística 1 de Nielsen?"
+                  className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  Verso do Flashcard (Resposta / Conceito)
+                </label>
+                <textarea
+                  value={fcVerso}
+                  onChange={(e) => setFcVerso(e.target.value)}
+                  rows={3}
+                  placeholder="Ex: Visibilidade do status do sistema..."
+                  className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none resize-none"
                 />
               </div>
             </div>
@@ -375,7 +489,7 @@ export default function GerenciadorConteudo() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                JSON Formatado para Copiar
+                JSON Formatado para Versionamento
               </span>
               <div className="flex items-center gap-2">
                 <button
@@ -387,7 +501,7 @@ export default function GerenciadorConteudo() {
                 </button>
                 <button
                   onClick={handleBaixar}
-                  className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+                  className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-800 transition-colors"
                   title="Baixar arquivo JSON"
                 >
                   <Download className="w-4 h-4" />
@@ -401,10 +515,7 @@ export default function GerenciadorConteudo() {
           </div>
 
           <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400">
-            Destino no repositório:{' '}
-            <strong className="text-slate-600 dark:text-slate-300">
-              src/data/{tipoConteudo === 'disciplina' ? 'disciplinas.json' : tipoConteudo === 'modulo' ? 'modulos.json' : 'kahoots.json'}
-            </strong>
+            Você pode salvar diretamente na sua máquina clicando em <strong>"Salvar na Plataforma"</strong> ou copiar o JSON acima para commit no GitHub.
           </div>
         </div>
       </div>

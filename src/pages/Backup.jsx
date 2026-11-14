@@ -9,7 +9,11 @@ import {
   FileCode,
   ShieldCheck,
   Database,
-  Info
+  Info,
+  Clock,
+  History,
+  Sparkles,
+  Check
 } from 'lucide-react';
 import Badge from '../components/common/Badge';
 
@@ -18,20 +22,26 @@ export default function Backup() {
     exportFullBackup,
     importFullBackup,
     resetAllDataToDefaults,
+    getSnapshots,
+    restoreSnapshot,
     disciplinas,
     modulos,
     resumos,
     kahoots,
     attempts,
     notas,
-    projetos
+    projetos,
+    flashcards,
+    eventosCalendario
   } = useStudy();
 
-  const [arquivoUpload, setArquivoUpload] = useState(null);
   const [previaBackup, setPreviaBackup] = useState(null);
   const [erroImportacao, setErroImportacao] = useState('');
   const [sucessoFeedback, setSucessoFeedback] = useState('');
   const [confirmacaoReset, setConfirmacaoReset] = useState(false);
+
+  // Lista de snapshots automáticos
+  const snapshots = getSnapshots ? getSnapshots() : [];
 
   // 1. Download do Backup JSON
   const handleDownloadBackup = () => {
@@ -43,6 +53,8 @@ export default function Backup() {
     a.download = `backup_portal_ads_${getTodayString()}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    setSucessoFeedback('Arquivo de backup exportado com sucesso!');
+    setTimeout(() => setSucessoFeedback(''), 3000);
   };
 
   // 2. Leitura do arquivo para Pré-visualização
@@ -64,15 +76,17 @@ export default function Backup() {
           throw new Error('O arquivo não é um JSON válido.');
         }
 
-        // Gera resumo da prévia
         setPreviaBackup({
           rawJson: content,
-          versao: parsed.version || 'desconhecida',
+          versao: parsed.version || '2.0',
           dataExportacao: parsed.exportedAt || 'não informada',
           disciplinas: parsed.disciplinas?.length || 0,
           modulos: parsed.modulos?.length || 0,
           kahoots: parsed.kahoots?.length || 0,
+          resumos: parsed.resumos?.length || 0,
           tentativas: Object.keys(parsed.attempts || {}).length,
+          flashcards: parsed.flashcards?.length || 0,
+          eventos: parsed.eventosCalendario?.length || 0,
           notas: parsed.notas?.length || 0,
           projetos: parsed.projetos?.length || 0
         });
@@ -89,18 +103,30 @@ export default function Backup() {
 
     const res = importFullBackup(previaBackup.rawJson);
     if (res.sucesso) {
-      setSucessoFeedback('Backup restaurado com sucesso! Seus dados foram atualizados no navegador.');
+      setSucessoFeedback('Backup restaurado com sucesso! Seus dados foram atualizados com segurança.');
       setPreviaBackup(null);
     } else {
       setErroImportacao(`Erro ao restaurar: ${res.erro}`);
     }
   };
 
-  // 4. Resetar para o padrão inicial
+  // 4. Restaurar Snapshot Automático
+  const handleRestaurarSnapshot = (snapshotId) => {
+    if (!window.confirm('Deseja restaurar seus dados para este ponto do histórico?')) return;
+    const ok = restoreSnapshot(snapshotId);
+    if (ok) {
+      setSucessoFeedback('Snapshot do histórico restaurado com sucesso!');
+      setTimeout(() => setSucessoFeedback(''), 3000);
+    } else {
+      setErroImportacao('Falha ao restaurar snapshot.');
+    }
+  };
+
+  // 5. Resetar para o padrão inicial
   const handleExecutarReset = () => {
     resetAllDataToDefaults();
     setConfirmacaoReset(false);
-    setSucessoFeedback('Todos os dados pessoais do navegador foram redefinidos para os valores padrão de fábrica.');
+    setSucessoFeedback('Todos os dados locais foram redefinidos para os valores padrão de fábrica.');
   };
 
   return (
@@ -109,33 +135,34 @@ export default function Backup() {
       <div className="border-b border-slate-200/80 dark:border-slate-800 pb-5">
         <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-1">
           <Database className="w-4 h-4" />
-          <span>Segurança e Sincronização</span>
+          <span>Segurança, Backup e Persistência</span>
         </div>
         <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
           Gerenciador de Backup e Dados
         </h2>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Exporte seus dados pessoais, transfira seu progresso entre computadores ou recupere um backup com total segurança.
+          Exporte seu histórico acadêmico, restaure arquivos JSON ou recupere pontos automáticos do histórico local.
         </p>
       </div>
 
-      {/* Aviso de Transparência sobre o Armazenamento Local */}
-      <div className="p-4 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 flex items-start gap-3">
-        <Info className="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0 mt-0.5" />
-        <div className="text-xs text-sky-900 dark:text-sky-200 leading-relaxed space-y-1">
-          <p>
-            <strong>Como funciona a persistência dos seus estudos:</strong> Como este portal é hospedado estaticamente no GitHub Pages sem cobranças de servidores ou bancos de dados na nuvem, todas as suas tentativas, anotações e revisões ficam salvas na memória local (<code>LocalStorage</code>) do seu navegador atual.
-          </p>
-          <p>
-            Para não perder seu histórico ao formatar o computador ou para sincronizar seus estudos entre o notebook e o desktop da faculdade, baixe o arquivo de backup abaixo regularmente e restaure-o no outro dispositivo!
-          </p>
+      {erroImportacao && (
+        <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-xs text-rose-800 dark:text-rose-300 font-medium flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{erroImportacao}</span>
         </div>
-      </div>
+      )}
+
+      {sucessoFeedback && (
+        <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-200 font-bold flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{sucessoFeedback}</span>
+        </div>
+      )}
 
       {/* Status Atual dos Dados em Memória */}
       <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs">
         <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">
-          Dados Atualmente Armazenados no seu Navegador
+          Dados Armazenados Localmente no Navegador
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
           <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
@@ -151,9 +178,9 @@ export default function Backup() {
             <span className="text-base font-bold text-slate-800 dark:text-slate-100">{kahoots.length}</span>
           </div>
           <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-            <span className="text-slate-400 block text-[11px]">Tentativas de Quiz</span>
-            <span className="text-base font-bold text-indigo-600 dark:text-indigo-400">
-              {Object.values(attempts).reduce((acc, cur) => acc + cur.length, 0)}
+            <span className="text-slate-400 block text-[11px]">Flashcards</span>
+            <span className="text-base font-bold text-purple-600 dark:text-purple-400">
+              {flashcards?.length || 0}
             </span>
           </div>
         </div>
@@ -171,7 +198,7 @@ export default function Backup() {
               </h3>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Gera um arquivo <code>.json</code> seguro contendo todas as suas disciplinas, módulos, kahoots, histórico de notas, datas de revisões e anotações pessoais.
+              Gera um arquivo <code>.json</code> estruturado e compatível com a versão 3.0 contendo todas as suas disciplinas, módulos, kahoots, tentativas, flashcards, eventos do calendário e anotações.
             </p>
           </div>
 
@@ -194,7 +221,7 @@ export default function Backup() {
               </h3>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Carregue um arquivo de backup previamente exportado. O sistema validará os dados e exibirá uma prévia antes de qualquer alteração.
+              Carregue um arquivo de backup exportado anteriormente. O sistema validará a integridade dos schemas antes de aplicar qualquer alteração.
             </p>
           </div>
 
@@ -213,21 +240,7 @@ export default function Backup() {
         </div>
       </div>
 
-      {erroImportacao && (
-        <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-xs text-rose-800 dark:text-rose-300 font-medium flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-          <span>{erroImportacao}</span>
-        </div>
-      )}
-
-      {sucessoFeedback && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-200 font-bold flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>{sucessoFeedback}</span>
-        </div>
-      )}
-
-      {/* Modal / Painel de Pré-visualização do Backup antes de Aplicar */}
+      {/* Painel de Pré-visualização do Backup antes de Aplicar */}
       {previaBackup && (
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border-2 border-emerald-400 dark:border-emerald-600 shadow-lg space-y-4 animate-fade-in">
           <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-bold text-sm">
@@ -235,7 +248,7 @@ export default function Backup() {
             <span>Pré-visualização do Backup Validado</span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
             <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800">
               <span className="text-slate-400 block text-[10px]">Versão:</span>
               <span className="font-semibold text-slate-800 dark:text-slate-200">{previaBackup.versao}</span>
@@ -249,21 +262,13 @@ export default function Backup() {
               <span className="font-semibold text-slate-800 dark:text-slate-200">{previaBackup.modulos}</span>
             </div>
             <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800">
-              <span className="text-slate-400 block text-[10px]">Kahoots:</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">{previaBackup.kahoots}</span>
-            </div>
-            <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800">
-              <span className="text-slate-400 block text-[10px]">Quizzes com Tentativas:</span>
-              <span className="font-semibold text-emerald-600">{previaBackup.tentativas}</span>
-            </div>
-            <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800">
-              <span className="text-slate-400 block text-[10px]">Notas Técnicas:</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">{previaBackup.notas}</span>
+              <span className="text-slate-400 block text-[10px]">Flashcards:</span>
+              <span className="font-semibold text-purple-600">{previaBackup.flashcards}</span>
             </div>
           </div>
 
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Ao confirmar, os dados do seu navegador serão substituídos pelas informações deste arquivo.
+            Ao confirmar, um snapshot de segurança será gravado antes de aplicar a restauração.
           </p>
 
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -281,6 +286,38 @@ export default function Backup() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Histórico de Snapshots Automáticos Locais */}
+      {snapshots.length > 0 && (
+        <section className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs space-y-3">
+          <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-sm">
+            <History className="w-4 h-4" />
+            <span>Histórico de Snapshots Automáticos (Recuperação Rápida)</span>
+          </div>
+          <p className="text-xs text-slate-500">
+            O sistema salva automaticamente snapshots locais antes de alterações críticas. Você pode reverter para qualquer ponto recente com um clique:
+          </p>
+
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            {snapshots.map(snap => (
+              <div key={snap.id} className="py-2.5 flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">{snap.label}</span>
+                  <span className="text-[11px] text-slate-400 block">
+                    {new Date(snap.timestamp).toLocaleString('pt-BR')}
+                  </span>
+                </div>
+                <button
+                  onClick={() => handleRestaurarSnapshot(snap.id)}
+                  className="px-3 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs font-semibold hover:bg-indigo-50"
+                >
+                  Restaurar Este Ponto
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* Bloco 3: Reset de Fábrica Seguro */}

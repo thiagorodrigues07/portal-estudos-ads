@@ -12,18 +12,22 @@ import {
   FolderGit2,
   FileCode,
   X,
-  Code2
+  Code2,
+  BrainCircuit,
+  CalendarDays
 } from 'lucide-react';
 import { useStudy } from '../../context/StudyContext';
 
 export default function Sidebar({ isOpen, onClose }) {
-  const { faculdade, disciplinas, kahoots, getDueTodayReviews, getOverdueReviews } = useStudy();
+  const { faculdade, disciplinas, kahoots, flashcards, getDueTodayReviews, getOverdueReviews } = useStudy();
 
   const totalRevisoesPendentes = getDueTodayReviews().length + getOverdueReviews().length;
 
   const NAV_PRINCIPAL = [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-    { to: '/revisoes', label: 'Revisões de Hoje', icon: Calendar, badge: totalRevisoesPendentes },
+    { to: '/revisoes', label: 'Revisões (SM-2)', icon: Calendar, badge: totalRevisoesPendentes },
+    { to: '/flashcards', label: 'Flashcards', icon: BrainCircuit, badge: flashcards?.length || 0 },
+    { to: '/calendario', label: 'Calendário & Prazos', icon: CalendarDays },
     { to: '/disciplinas', label: 'Disciplinas & Módulos', icon: BookOpen },
     { to: '/kahoots', label: 'Central de Kahoots', icon: HelpCircle },
     { to: '/resumos', label: 'Biblioteca de Resumos', icon: FileText },

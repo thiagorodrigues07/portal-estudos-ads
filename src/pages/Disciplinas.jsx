@@ -16,7 +16,7 @@ import Badge from '../components/common/Badge';
 import EmptyState from '../components/common/EmptyState';
 
 export default function Disciplinas() {
-  const { disciplinas, modulos, resumos, kahoots, projetos, moduleProgress } = useStudy();
+  const { disciplinas, modulos, resumos, kahoots, projetos } = useStudy();
 
   const [busca, setBusca] = useState('');
   const [filtroSemestre, setFiltroSemestre] = useState('todos');
@@ -107,7 +107,7 @@ export default function Disciplinas() {
             const kahootsDaDisc = kahoots.filter(k => k.disciplinaId === disc.id);
             const projetosDaDisc = projetos.filter(p => p.disciplinasRelacionadas?.includes(disc.id));
 
-            const concluidos = modulosDaDisc.filter(m => (moduleProgress[m.id] || m.status) === 'concluido').length;
+            const concluidos = modulosDaDisc.filter(m => m.status === 'estudado' || m.status === 'dominado' || m.status === 'concluido').length;
             const progressoDisc = modulosDaDisc.length > 0 ? Math.round((concluidos / modulosDaDisc.length) * 100) : 0;
 
             return (
